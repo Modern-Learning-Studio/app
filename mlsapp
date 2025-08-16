@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLS DAILY</title>
+    <meta name="description" content="Staff attendance and HR dashboard for MLS DAILY.">
+    <style>
+        /* CSS Variables and Base Styles */
+        :root {
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --primary-color: #0052cc;
+            --primary-color-dark: #0041a3;
+            --secondary-color: #f4f5f7;
+            --text-color: #172b4d;
+            --text-color-light: #5e6c84;
+            --border-color: #dfe1e6;
+            --background-color: #fafbfc;
+            --card-background: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --status-ok: #00875a;
+            --status-ok-bg: #e3fcef;
+            --status-warn: #ffab00;
+            --status-warn-bg: #fff0b3;
+            --status-err: #de350b;
+            --status-err-bg: #ffebe6;
+            --status-info: #0052cc;
+            --status-info-bg: #deebff;
+        }
+
+        /* Reset and Box Sizing */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Accessibility */
+        :focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Utility Classes */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .card {
+            background-color: var(--card-background);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+            .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+            .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+        }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .w-full { width: 100%; }
+        .text-center { text-align: center; }
+        .text-sm { font-size: 0.875rem; }
+        .text-light { color: var(--text-color-light); }
+        .font-bold { font-weight: 600; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .p-2 { padding: 0.5rem; }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .form-control {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+        }
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s, transform 0.1s;
+            text-decoration: none;
+        }
+        .btn:active {
+            transform: translateY(1px);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-color-dark);
+        }
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: #e9ecef;
+        }
+        .btn-danger {
+            background-color: var(--status-err);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #bf2600;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Pills/Badges */
+        .pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .pill-ok { color: var(--status-ok); background-color: var(--status-ok-bg); }
+        .pill-warn { color: var(--status-warn); background-color: var(--status-warn-bg); }
+        .pill-err { color: var(--status-err); background-color: var(--status-err-bg); }
+        .pill-info { color: var(--status-info); background-color: var(--status-info-bg); }
+        .pill-gray { color: var(--text-color-light); background-color: var(--secondary-color); }
+
+        /* Login Screen */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 1rem;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+        #login-error {
+            color: var(--status-err);
+            margin-top: 1rem;
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+        /* Main App Layout */
+        #app-header {
+            position: sticky;
+            top: 0;
+            background-color: var(--card-background);
+            box-shadow: var(--shadow-sm);
+            padding: 0.75rem 1rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+        .user-badge {
+            font-weight: 500;
+            text-align: center;
+        }
+        .user-badge span {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-color-light);
+        }
+        
+        #header-actions {
+            display: none; /* Hidden on mobile by default */
+        }
+
+        @media (min-width: 768px) {
+            #header-actions {
+                display: flex;
+                gap: 0.5rem;
+            }
+        }
+        
+        #mobile-header-actions {
+            display: block;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            #mobile-header-actions {
+                display: none;
+            }
+        }
+
+
+        #tab-nav {
+            background-color: var(--card-background);
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        #tab-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+        #tab-nav::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        .tab-item {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color-light);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-item:hover {
+            background-color: var(--secondary-color);
+        }
+        .tab-item.active {
+            background-color: var(--status-info-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        #main-content {
+            flex-grow: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .tab-pane {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data-table th, .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        .data-table thead {
+            position: sticky;
+            top: 0;
+            background-color: var(--secondary-color);
+            z-index: 1;
+        }
+        .data-table th {
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: var(--text-color-light);
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        /* Side Drawer */
+        #drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #drawer-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        #drawer-content {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            background-color: var(--card-background);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 101;
+            display: flex;
+            flex-direction: column;
+        }
+        #drawer-overlay.visible #drawer-content {
+            transform: translateX(0);
+        }
+        .drawer-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .drawer-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color-light);
+        }
+        .drawer-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+        .profile-kpi {
+            text-align: center;
+        }
+        .profile-kpi .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .profile-kpi .label {
+            font-size: 0.9rem;
+            color: var(--text-color-light);
+        }
+        .info-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+        .info-list li span:first-child {
+            font-weight: 500;
+            color: var(--text-color-light);
+        }
+
+        h2, h3, h4 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
+        h4 { font-size: 1.1rem; }
+
+        /* Custom Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+        
+        .spinner {
+            border: 4px solid var(--secondary-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- App content will be rendered here by JavaScript -->
+    </div>
+
+    <script type="module">
+        const STATE_KEY = 'MLS_DAILY_STATE_V4';
+
+        // --- STATE MANAGEMENT ---
+        let state = {};
+
+        function getState() {
+            return JSON.parse(localStorage.getItem(STATE_KEY)) || null;
+        }
+
+        function saveState() {
+            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        }
+        
+        function getSeedState() {
+            const todayStr = today();
+            return {
+                settings: {
+                    org: "MLS Innovations",
+                    centres: ["MLS - Colombo 4", "Finnish Preschool - Park Road", "Forest School - Piliyandala", "SenSoMo - One Galle Face", "Forest School - Cape Weligama"],
+                    breakMins: 30,
+                    targetMins: 480,
+                    halfDayMins: 240,
+                    webhook: ""
+                },
+                staff: [
+                    { id: "1001", name: "John Doe", role: "Developer", pin: "1001", defaultWorksite: "MLS - Colombo 4", joinDate: "2023-01-10", active: true },
+                    { id: "1002", name: "Jane Smith", role: "Designer", pin: "1002", defaultWorksite: "Finnish Preschool - Park Road", joinDate: "2023-03-15", active: true }
+                ],
+                profiles: {
+                    "1001": { phone: "0771234567", email: "john@mls.com", performance: { points: 120 }, documents: [] },
+                    "1002": { phone: "0777654321", email: "jane@mls.com", performance: { points: 65 }, documents: [] }
+                },
+                sessions: [
+                    { id: Date.now() + '_1', staffId: "1001", centre: "MLS - Colombo 4", date: todayStr, clockIn: `${todayStr}T09:00:00`, clockOut: null, breaks: [] },
+                    { id: Date.now() + '_2', staffId: "1002", centre: "Finnish Preschool - Park Road", date: todayStr, clockIn: `${todayStr}T09:15:00`, clockOut: null, breaks: [] }
+                ],
+                leaves: [
+                    { id: Date.now(), staffId: "1002", date: todayStr, type: "Short", minutes: 60, reason: "Dentist appointment", status: "Pending", appliedAt: new Date().toISOString() }
+                ],
+                holidays: [
+                    { id: Date.now(), date: "2025-08-20", title: "Poya Day" }
+                ],
+                shifts: [],
+                notices: [
+                    { id: Date.now(), title: "Welcome to MLS DAILY!", body: "This is the new attendance and HR portal. Please familiarize yourself with the features.", centre: "All", postedAt: new Date().toISOString() }
+                ],
+                inbox: {
+                    requests: [],
+                    salaryRequests: []
+                },
+                ui: {
+                    activeTab: null,
+                    currentUser: null,
+                    currentCentre: null
+                }
+            };
+        }
+
+        // --- UTILITY FUNCTIONS ---
+        const today = () => new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+        const now = () => new Date().toISOString();
+        const formatDateTime = (isoString) => new Date(isoString).toLocaleString();
+        const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        const hhmmToMin = (hhmm) => {
+            if (!hhmm || !hhmm.includes(':')) return 0;
+            const [h, m] = hhmm.split(':').map(Number);
+            return h * 60 + m;
+        };
+        const minToHHMM = (totalMinutes) => {
+            if (isNaN(totalMinutes) || totalMinutes < 0) return '00:00';
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.round(totalMinutes % 60);
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+        };
+
+        /**
+         * Calculates the total worked minutes for a staff member on a specific date.
+         * @param {string} staffId - The ID of the staff member.
+         * @param {string} date - The date in YYYY-MM-DD format.
+         * @param {boolean} [isLive=false] - If true, calculates time up to now for open sessions.
+         * @returns {number} - The total worked minutes, rounded.
+         */
+        function workedMinutes(staffId, date, isLive = false) {
+            const { sessions, leaves, settings } = state;
+            const staffSessions = sessions.filter(s => s.staffId === staffId && s.date === date);
+            
+            if (!staffSessions.length) return 0;
+
+            const staffLeaves = leaves.filter(l => l.staffId === staffId && l.date === date && l.status === 'Approved');
+
+            if (staffLeaves.some(l => l.type === 'Full')) return 0;
+
+            let totalMins = staffSessions.reduce((acc, s) => {
+                if (!s.clockIn) return acc;
+                const start = new Date(s.clockIn);
+                // Use current time if session is live, otherwise use clockOut time
+                const end = s.clockOut ? new Date(s.clockOut) : (isLive ? new Date() : start);
+                return acc + (end - start) / (1000 * 60);
+            }, 0);
+
+            totalMins -= settings.breakMins;
+
+            const shortLeaveMins = staffLeaves
+                .filter(l => l.type === 'Short')
+                .reduce((acc, l) => acc + (l.minutes || 0), 0);
+            totalMins -= shortLeaveMins;
+
+            if (staffLeaves.some(l => l.type === 'Half')) {
+                totalMins = Math.min(totalMins, settings.halfDayMins);
+            }
+
+            return Math.max(0, Math.round(totalMins));
+        }
+
+        // --- RENDERING ENGINE ---
+        const App = document.getElementById('app');
+
+        function render() {
+            const { currentUser } = state.ui;
+            if (currentUser) {
+                renderAppLayout();
+            } else {
+                renderLogin();
+            }
+            attachDynamicListeners();
+        }
+
+        function renderLogin() {
+            const { settings } = state;
+            App.innerHTML = `
+                <div id="login-screen">
+                    <div class="card login-card">
+                        <h1 class="login-title">MLS DAILY</h1>
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label for="centre">Select Centre</label>
+                                <select id="centre" class="form-control" required>
+                                    ${settings.centres.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pin">PIN</label>
+                                <input type="password" id="pin" class="form-control" inputmode="numeric" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full">Login</button>
+                            <div id="login-error"></div>
+                            <p class="text-center text-sm text-light mt-4">
+                                Sample PINs: 0000 (Admin), 1001, 1002
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderAppLayout() {
+            const { currentUser, currentCentre } = state.ui;
+            const isAdmin = currentUser.role === 'Admin';
+            const tabs = isAdmin ? 
+                ['Today', 'Attendance', 'Shift Planner', 'Staff', 'Leaves', 'Holidays', 'Inbox', 'Rewards', 'Settings', 'Export', 'Notice Board', 'Payroll'] : 
+                ['My Dashboard', 'Clock', 'My Leaves', 'My Requests', 'Company Holidays', 'Notice Board', 'My Profile'];
+            
+            if (!state.ui.activeTab || !tabs.includes(state.ui.activeTab)) {
+                state.ui.activeTab = tabs[0];
+            }
+
+            App.innerHTML = `
+                <header id="app-header">
+                    <div class="brand">MLS DAILY</div>
+                    <div class="user-badge">
+                        ${currentUser.name}
+                        <span>${currentCentre}</span>
+                    </div>
+                    <div id="header-actions" class="btn-group">
+                        <button class="btn btn-secondary btn-sm" data-action="test-webhook">Test Webhook</button>
+                        <button class="btn btn-secondary btn-sm" data-action="load-webhook">Load from Webhook</button>
+                        <button class="btn btn-secondary btn-sm" data-action="sync-webhook">Sync → Webhook</button>
+                        <button class="btn btn-secondary btn-sm" data-action="logout">Logout</button>
+                    </div>
+                </header>
+                <nav id="tab-nav">
+                    ${tabs.map(tab => `<button class="tab-item ${state.ui.activeTab === tab ? 'active' : ''}" data-tab="${tab}">${tab}</button>`).join('')}
+                </nav>
+                <div id="mobile-header-actions" class="p-2" style="background: var(--secondary-color);">
+                    <div class="btn-group">
+                        <button class="btn btn-secondary btn-sm" data-action="test-webhook">Test</button>
+                        <button class="btn btn-secondary btn-sm" data-action="load-webhook">Load</button>
+                        <button class="btn btn-secondary btn-sm" data-action="sync-webhook">Sync</button>
+                        <button class="btn btn-secondary btn-sm" data-action="logout">Logout</button>
+                    </div>
+                </div>
+                <main id="main-content">
+                    <div id="tab-content"></div>
+                </main>
+                <div id="drawer-overlay">
+                    <div id="drawer-content" role="dialog" aria-modal="true"></div>
+                </div>
+                <div id="modal-container"></div>
+            `;
+            renderTabContent();
+        }
+
+        function renderTabContent() {
+            const container = document.getElementById('tab-content');
+            if (!container) return;
+
+            const { activeTab } = state.ui;
+            
+            let content = `<div class="tab-pane">`;
+            switch(activeTab) {
+                // Admin Tabs
+                case 'Today': content += renderAdminToday(); break;
+                case 'Attendance': content += renderAdminAttendance(); break;
+                case 'Shift Planner': content += renderAdminShiftPlanner(); break;
+                case 'Staff': content += renderAdminStaff(); break;
+                case 'Leaves': content += renderAdminLeaves(); break;
+                case 'Holidays': content += renderAdminHolidays(); break;
+                case 'Inbox': content += renderAdminInbox(); break;
+                case 'Rewards': content += renderAdminRewards(); break;
+                case 'Settings': content += renderAdminSettings(); break;
+                case 'Export': content += renderAdminExport(); break;
+                case 'Notice Board': content += renderAdminNoticeBoard(); break;
+                case 'Payroll': content += renderAdminPayroll(); break;
+                
+                // Staff Tabs
+                case 'My Dashboard': content += renderStaffDashboard(); break;
+                case 'Clock': content += renderStaffClock(); break;
+                case 'My Leaves': content += renderStaffLeaves(); break;
+                case 'My Requests': content += renderStaffRequests(); break;
+                case 'Company Holidays': content += renderStaffHolidays(); break;
+                case 'Notice Board': content += renderStaffNoticeBoard(); break;
+                case 'My Profile': content += renderStaffProfile(); break;
+
+                default: content += `<h2>Coming Soon</h2><p>The "${activeTab}" tab is under construction.</p>`;
+            }
+            content += `</div>`;
+            container.innerHTML = content;
+        }
+        
+        // --- ADMIN TAB RENDERERS ---
+
+        function renderAdminToday() {
+            const todayStr = today();
+            const { sessions, staff, notices } = state;
+            const todaysSessions = sessions.filter(s => s.date === todayStr);
+            
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" style="align-items: start;">
+                    <div>
+                        <h2>Today's Attendance (${formatDate(todayStr)})</h2>
+                        <div class="card">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead><tr><th>Name</th><th>Centre</th><th>Clock In</th><th>Clock Out</th></tr></thead>
+                                    <tbody>
+                                        ${staff.filter(s => s.active).map(s => {
+                                            const session = todaysSessions.find(ts => ts.staffId === s.id);
+                                            return `
+                                                <tr>
+                                                    <td>${s.name}</td>
+                                                    <td>${session ? session.centre : s.defaultWorksite}</td>
+                                                    <td>${session && session.clockIn ? new Date(session.clockIn).toLocaleTimeString() : '-'}</td>
+                                                    <td>${session && session.clockOut ? new Date(session.clockOut).toLocaleTimeString() : '-'}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h2>Notice Board</h2>
+                        ${notices.sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt)).map(n => `
+                            <div class="card">
+                                <h4>${n.title}</h4>
+                                <p class="text-sm text-light">${formatDateTime(n.postedAt)} - ${n.centre}</p>
+                                <p class="mt-4">${n.body}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminAttendance() {
+            const firstDayOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString('en-CA');
+            return `
+                <h2>Attendance Report</h2>
+                <div class="card">
+                    <form id="attendance-filter-form" class="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                        <div class="form-group">
+                            <label for="start-date">Start Date</label>
+                            <input type="date" id="start-date" class="form-control" value="${firstDayOfMonth}">
+                        </div>
+                        <div class="form-group">
+                            <label for="end-date">End Date</label>
+                            <input type="date" id="end-date" class="form-control" value="${today()}">
+                        </div>
+                        <div class="form-group">
+                            <label for="staff-select">Staff</label>
+                            <select id="staff-select" class="form-control">
+                                <option value="All">All Staff</option>
+                                ${state.staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="centre-select">Centre</label>
+                            <select id="centre-select" class="form-control">
+                                <option value="All">All Centres</option>
+                                ${state.settings.centres.map(c => `<option value="${c}">${c}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Run Report</button>
+                    </form>
+                </div>
+                <div id="attendance-report-container" class="mt-4"></div>
+            `;
+        }
+        
+        function renderAdminShiftPlanner() {
+            const { shifts, staff, settings } = state;
+            const sortedShifts = [...shifts].sort((a,b) => new Date(a.date + 'T' + a.start) - new Date(b.date + 'T' + b.start));
+
+            return `
+                <h2>Shift Planner</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="align-items: start;">
+                    <div class="card">
+                        <h3>Add Shift</h3>
+                        <form id="add-shift-form">
+                            <div class="form-group">
+                                <label for="shift-date">Date</label>
+                                <input type="date" id="shift-date" class="form-control" required value="${today()}">
+                            </div>
+                            <div class="form-group">
+                                <label for="shift-centre">Centre</label>
+                                <select id="shift-centre" class="form-control" required>
+                                    ${settings.centres.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="shift-staff">Staff</label>
+                                <select id="shift-staff" class="form-control" required>
+                                    ${staff.filter(s => s.active).map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="form-group">
+                                    <label for="shift-start">Start Time</label>
+                                    <input type="time" id="shift-start" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="shift-end">End Time</label>
+                                    <input type="time" id="shift-end" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="shift-notes">Notes</label>
+                                <textarea id="shift-notes" class="form-control"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Shift</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>Upcoming Shifts</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Date</th><th>Staff</th><th>Centre</th><th>Time</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    ${sortedShifts.map(shift => `
+                                        <tr>
+                                            <td>${shift.date}</td>
+                                            <td>${staff.find(s => s.id === shift.staffId)?.name || 'N/A'}</td>
+                                            <td>${shift.centre}</td>
+                                            <td>${shift.start} - ${shift.end}</td>
+                                            <td><button class="btn btn-danger btn-sm" data-action="delete-shift" data-id="${shift.id}">Delete</button></td>
+                                        </tr>
+                                    `).join('')}
+                                    ${sortedShifts.length === 0 ? '<tr><td colspan="5" class="text-center">No shifts planned.</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminStaff() {
+            const { staff, settings } = state;
+            return `
+                <h2>Staff Management</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" style="align-items: start;">
+                    <div class="card lg:col-span-1">
+                        <h3>Add Staff</h3>
+                        <form id="add-staff-form">
+                            <div class="form-group">
+                                <label for="staff-id">Staff ID</label>
+                                <input type="text" id="staff-id" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-name">Name</label>
+                                <input type="text" id="staff-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-role">Role</label>
+                                <input type="text" id="staff-role" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-pin">PIN (numeric)</label>
+                                <input type="number" id="staff-pin" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="staff-centre">Default Centre</label>
+                                <select id="staff-centre" class="form-control" required>
+                                    ${settings.centres.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Staff</button>
+                        </form>
+                    </div>
+                    <div class="card lg:col-span-2">
+                        <h3>Manage Staff</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Centre</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    ${staff.map(s => `
+                                        <tr>
+                                            <td>${s.id}</td>
+                                            <td>${s.name}</td>
+                                            <td>${s.role}</td>
+                                            <td>${s.defaultWorksite}</td>
+                                            <td><span class="pill ${s.active ? 'pill-ok' : 'pill-gray'}">${s.active ? 'Active' : 'Inactive'}</span></td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <button class="btn btn-secondary btn-sm" data-action="toggle-staff-status" data-id="${s.id}">${s.active ? 'Deactivate' : 'Activate'}</button>
+                                                    <button class="btn btn-secondary btn-sm" data-action="view-staff-profile" data-id="${s.id}">Profile</button>
+                                                    <button class="btn btn-danger btn-sm" data-action="remove-staff" data-id="${s.id}">Remove</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderAdminLeaves() {
+            const { leaves, staff } = state;
+            const sortedLeaves = [...leaves].sort((a,b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+            return `
+                <h2>Leave Management</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" style="align-items: start;">
+                    <div class="card lg:col-span-1">
+                        <h3>Submit Leave (Admin)</h3>
+                        <form id="admin-leave-form">
+                            <div class="form-group">
+                                <label for="leave-staff">Staff</label>
+                                <select id="leave-staff" class="form-control" required>
+                                    ${staff.filter(s => s.active).map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="leave-date">Date</label>
+                                <input type="date" id="leave-date" class="form-control" required value="${today()}">
+                            </div>
+                            <div class="form-group">
+                                <label for="leave-type">Type</label>
+                                <select id="leave-type" class="form-control" required>
+                                    <option>Full</option>
+                                    <option>Half</option>
+                                    <option>Short</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="leave-minutes-group" style="display:none;">
+                                <label for="leave-minutes">Minutes</label>
+                                <input type="number" id="leave-minutes" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="leave-reason">Reason</label>
+                                <textarea id="leave-reason" class="form-control" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit as Approved</button>
+                        </form>
+                    </div>
+                    <div class="card lg:col-span-2">
+                        <h3>All Leave Requests</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Applied</th><th>Staff</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    ${sortedLeaves.map(l => {
+                                        const statusPill = l.status === 'Approved' ? 'pill-ok' : (l.status === 'Pending' ? 'pill-warn' : 'pill-err');
+                                        return `
+                                            <tr>
+                                                <td>${formatDateTime(l.appliedAt)}</td>
+                                                <td>${staff.find(s => s.id === l.staffId)?.name || 'N/A'}</td>
+                                                <td>${l.date}</td>
+                                                <td>${l.type}${l.type === 'Short' ? ` (${l.minutes}m)` : ''}</td>
+                                                <td><span class="pill ${statusPill}">${l.status}</span></td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button class="btn btn-secondary btn-sm" data-action="update-leave" data-id="${l.id}" data-status="Approved">Approve</button>
+                                                        <button class="btn btn-secondary btn-sm" data-action="update-leave" data-id="${l.id}" data-status="Pending">Pend</button>
+                                                        <button class="btn btn-secondary btn-sm" data-action="update-leave" data-id="${l.id}" data-status="Rejected">Reject</button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${sortedLeaves.length === 0 ? '<tr><td colspan="6" class="text-center">No leave requests.</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminHolidays() {
+            const { holidays } = state;
+            const sortedHolidays = [...holidays].sort((a,b) => new Date(a.date) - new Date(b.date));
+            return `
+                <h2>Company Holidays</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="align-items: start;">
+                    <div class="card">
+                        <h3>Add Holiday</h3>
+                        <form id="add-holiday-form">
+                            <div class="form-group">
+                                <label for="holiday-date">Date</label>
+                                <input type="date" id="holiday-date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="holiday-title">Title</label>
+                                <input type="text" id="holiday-title" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add Holiday</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>Holiday List</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Date</th><th>Title</th><th>Action</th></tr></thead>
+                                <tbody>
+                                    ${sortedHolidays.map(h => `
+                                        <tr>
+                                            <td>${h.date}</td>
+                                            <td>${h.title}</td>
+                                            <td><button class="btn btn-danger btn-sm" data-action="delete-holiday" data-id="${h.id}">Delete</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminInbox() {
+            const { inbox, staff } = state;
+            return `
+                <h2>Inbox</h2>
+                <div class="card mb-4">
+                    <h3>General Requests</h3>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>When</th><th>Staff</th><th>Type</th><th>Subject</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${inbox.requests.map(r => `
+                                    <tr>
+                                        <td>${formatDateTime(r.appliedAt)}</td>
+                                        <td>${staff.find(s => s.id === r.staffId)?.name || 'N/A'}</td>
+                                        <td>${r.type}</td>
+                                        <td>${r.subject}</td>
+                                        <td><span class="pill pill-warn">${r.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                                ${inbox.requests.length === 0 ? '<tr><td colspan="5" class="text-center">No general requests.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Salary Requests</h3>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>When</th><th>Staff</th><th>Amount</th><th>Reason</th><th>Status</th></tr></thead>
+                            <tbody>
+                                ${inbox.salaryRequests.map(r => `
+                                    <tr>
+                                        <td>${formatDateTime(r.appliedAt)}</td>
+                                        <td>${staff.find(s => s.id === r.staffId)?.name || 'N/A'}</td>
+                                        <td>${r.amount}</td>
+                                        <td>${r.reason}</td>
+                                        <td><span class="pill pill-warn">${r.status}</span></td>
+                                    </tr>
+                                `).join('')}
+                                ${inbox.salaryRequests.length === 0 ? '<tr><td colspan="5" class="text-center">No salary requests.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminRewards() {
+            const { staff, profiles } = state;
+            return `
+                <h2>Rewards & Recognition</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="align-items: start;">
+                    <div class="card">
+                        <h3>Award Points</h3>
+                        <form id="award-points-form">
+                            <div class="form-group">
+                                <label for="reward-staff">Staff</label>
+                                <select id="reward-staff" class="form-control" required>
+                                    ${staff.filter(s => s.active).map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="reward-points">Points</label>
+                                <input type="number" id="reward-points" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reward-reason">Reason</label>
+                                <input type="text" id="reward-reason" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Award Points</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>Points Leaderboard</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Staff</th><th>Total Points</th></tr></thead>
+                                <tbody>
+                                    ${staff.map(s => `
+                                        <tr>
+                                            <td>${s.name}</td>
+                                            <td>${profiles[s.id]?.performance?.points || 0}</td>
+                                        </tr>
+                                    `).sort((a, b) => (profiles[b.id]?.performance?.points || 0) - (profiles[a.id]?.performance?.points || 0)).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderAdminSettings() {
+            const { settings } = state;
+            return `
+                <h2>Settings</h2>
+                <div class="card">
+                    <form id="settings-form">
+                        <div class="form-group">
+                            <label for="setting-org">Organization Name</label>
+                            <input type="text" id="setting-org" class="form-control" value="${settings.org}">
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="form-group">
+                                <label for="setting-break">Daily Break (mins)</label>
+                                <input type="number" id="setting-break" class="form-control" value="${settings.breakMins}">
+                            </div>
+                            <div class="form-group">
+                                <label for="setting-target">Target Work (mins)</label>
+                                <input type="number" id="setting-target" class="form-control" value="${settings.targetMins}">
+                            </div>
+                            <div class="form-group">
+                                <label for="setting-halfday">Half-day Cap (mins)</label>
+                                <input type="number" id="setting-halfday" class="form-control" value="${settings.halfDayMins}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="setting-webhook">Webhook URL</label>
+                            <input type="url" id="setting-webhook" class="form-control" value="${settings.webhook}">
+                            <p class="text-sm text-light mt-2">
+                                For endpoints ending in .json, we'll use PUT. For others, POST. CORS may hide the response, but the server should still receive the data.
+                            </p>
+                        </div>
+                        <hr class="my-4">
+                        <div class="form-group">
+                            <label>Manage Centres</label>
+                            <ul id="centres-list" class="list-group mb-2">
+                                ${settings.centres.map(c => `
+                                    <li class="flex justify-between items-center p-2 border-b">
+                                        <span>${c}</span>
+                                        <button type="button" class="btn btn-danger btn-sm" data-action="remove-centre" data-centre="${c}">Remove</button>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                            <div class="flex gap-2">
+                                <input type="text" id="new-centre-name" class="form-control" placeholder="New centre name">
+                                <button type="button" id="add-centre-btn" class="btn btn-secondary">Add</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        function renderAdminExport() {
+            return `
+                <h2>Export Data</h2>
+                <div class="card">
+                    <h3>Download CSV Files</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" data-action="export-csv" data-type="staff">Staff CSV</button>
+                        <button class="btn btn-secondary" data-action="export-csv" data-type="sessions">Sessions CSV</button>
+                        <button class="btn btn-secondary" data-action="export-csv" data-type="leaves">Leaves CSV</button>
+                        <button class="btn btn-secondary" data-action="export-csv" data-type="shifts">Shifts CSV</button>
+                    </div>
+                    <h3 class="mt-4">Full Backup</h3>
+                    <p class="mb-4">Download a complete JSON file of all application data. This can be restored or used for migration.</p>
+                    <button class="btn btn-primary" data-action="export-json">Download Full JSON Backup</button>
+                </div>
+            `;
+        }
+        
+        function renderAdminNoticeBoard() {
+            const { notices, settings } = state;
+            const sortedNotices = [...notices].sort((a,b) => new Date(b.postedAt) - new Date(a.postedAt));
+            return `
+                <h2>Notice Board Management</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="align-items: start;">
+                    <div class="card">
+                        <h3>Post Notice</h3>
+                        <form id="post-notice-form">
+                            <div class="form-group">
+                                <label for="notice-title">Title</label>
+                                <input type="text" id="notice-title" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="notice-body">Body</label>
+                                <textarea id="notice-body" class="form-control" required></textarea>
+                            </div>
+                             <div class="form-group">
+                                <label for="notice-centre">Centre</label>
+                                <select id="notice-centre" class="form-control" required>
+                                    <option value="All">All Centres</option>
+                                    ${settings.centres.map(c => `<option value="${c}">${c}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post Notice</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>All Notices</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Posted</th><th>Title</th><th>Centre</th><th>Action</th></tr></thead>
+                                <tbody>
+                                    ${sortedNotices.map(n => `
+                                        <tr>
+                                            <td>${formatDateTime(n.postedAt)}</td>
+                                            <td>${n.title}</td>
+                                            <td>${n.centre}</td>
+                                            <td><button class="btn btn-danger btn-sm" data-action="delete-notice" data-id="${n.id}">Delete</button></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAdminPayroll() {
+            const { staff, settings } = state;
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+
+            const payrollData = staff.map(s => {
+                let totalMins = 0;
+                let totalOTMins = 0;
+                for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+                    const dateStr = d.toLocaleDateString('en-CA');
+                    const worked = workedMinutes(s.id, dateStr);
+                    totalMins += worked;
+                    totalOTMins += Math.max(0, worked - settings.targetMins);
+                }
+                return {
+                    name: s.name,
+                    total: minToHHMM(totalMins),
+                    ot: minToHHMM(totalOTMins)
+                };
+            });
+
+            return `
+                <h2>Payroll Summary - ${today.toLocaleString('default', { month: 'long', year: 'numeric' })}</h2>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Staff</th><th>Total Worked (hh:mm)</th><th>Overtime (hh:mm)</th></tr></thead>
+                            <tbody>
+                                ${payrollData.map(p => `
+                                    <tr>
+                                        <td>${p.name}</td>
+                                        <td>${p.total}</td>
+                                        <td>${p.ot}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+
+        // --- STAFF TAB RENDERERS ---
+        
+        function renderStaffDashboard() {
+            const { currentUser } = state.ui;
+            const { sessions, leaves, profiles } = state;
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            
+            const totalMinsThisMonth = sessions
+                .filter(s => {
+                    const sessionDate = new Date(s.date);
+                    return s.staffId === currentUser.id && sessionDate.getFullYear() === year && sessionDate.getMonth() === month && s.clockOut;
+                })
+                .reduce((acc, s) => acc + workedMinutes(s.staffId, s.date), 0);
+
+            const leavesThisMonth = leaves.filter(l => {
+                const leaveDate = new Date(l.date);
+                return l.staffId === currentUser.id && l.status === 'Approved' && leaveDate.getFullYear() === year && leaveDate.getMonth() === month;
+            }).length;
+
+            const points = profiles[currentUser.id]?.performance?.points || 0;
+
+            const recentSessions = sessions
+                .filter(s => s.staffId === currentUser.id)
+                .sort((a,b) => new Date(b.clockIn) - new Date(a.clockIn))
+                .slice(0, 10);
+
+            return `
+                <h2>My Dashboard</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card text-center">
+                        <h4>Worked This Month</h4>
+                        <p class="text-2xl font-bold">${minToHHMM(totalMinsThisMonth)}</p>
+                    </div>
+                    <div class="card text-center">
+                        <h4>Approved Leaves</h4>
+                        <p class="text-2xl font-bold">${leavesThisMonth}</p>
+                    </div>
+                    <div class="card text-center">
+                        <h4>Reward Points</h4>
+                        <p class="text-2xl font-bold">${points}</p>
+                    </div>
+                </div>
+                <h3 class="mt-4">Recent Sessions</h3>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Date</th><th>Clock In</th><th>Clock Out</th><th>Worked</th></tr></thead>
+                            <tbody>
+                                ${recentSessions.map(s => `
+                                    <tr>
+                                        <td>${s.date}</td>
+                                        <td>${s.clockIn ? new Date(s.clockIn).toLocaleTimeString() : '-'}</td>
+                                        <td>${s.clockOut ? new Date(s.clockOut).toLocaleTimeString() : '-'}</td>
+                                        <td>${s.clockOut ? minToHHMM(workedMinutes(s.staffId, s.date)) : 'In Progress'}</td>
+                                    </tr>
+                                `).join('')}
+                                ${recentSessions.length === 0 ? '<tr><td colspan="4" class="text-center">No recent sessions.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffClock() {
+            const { currentUser } = state.ui;
+            const todayStr = today();
+            let todaysSession = state.sessions.find(s => s.staffId === currentUser.id && s.date === todayStr);
+
+            const canClockIn = !todaysSession;
+            const canClockOut = todaysSession && !todaysSession.clockOut;
+            const onBreak = todaysSession && todaysSession.breaks.some(b => b.start && !b.end);
+            
+            const workedToday = workedMinutes(currentUser.id, todayStr, true);
+
+            return `
+                <h2>Clock In / Out</h2>
+                <div class="card">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                        <button class="btn btn-primary" data-action="clock-in" ${!canClockIn ? 'disabled' : ''}>Clock In</button>
+                        <button class="btn btn-secondary" data-action="break-start" ${!canClockOut || onBreak ? 'disabled' : ''}>Break Start</button>
+                        <button class="btn btn-secondary" data-action="break-end" ${!onBreak ? 'disabled' : ''}>Break End</button>
+                        <button class="btn btn-danger" data-action="clock-out" ${!canClockOut ? 'disabled' : ''}>Clock Out</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Today's Summary (${formatDate(todayStr)})</h3>
+                    <div class="grid grid-cols-3 text-center">
+                        <div>
+                            <p class="text-light">Clock In</p>
+                            <p class="font-bold">${todaysSession?.clockIn ? new Date(todaysSession.clockIn).toLocaleTimeString() : '--:--'}</p>
+                        </div>
+                        <div>
+                            <p class="text-light">Clock Out</p>
+                            <p class="font-bold">${todaysSession?.clockOut ? new Date(todaysSession.clockOut).toLocaleTimeString() : '--:--'}</p>
+                        </div>
+                        <div>
+                            <p class="text-light">Worked</p>
+                            <p class="font-bold">${minToHHMM(workedToday)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffLeaves() {
+            const { currentUser } = state.ui;
+            const myLeaves = state.leaves
+                .filter(l => l.staffId === currentUser.id)
+                .sort((a,b) => new Date(b.appliedAt) - new Date(a.appliedAt));
+            
+            return `
+                <h2>My Leaves</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" style="align-items: start;">
+                    <div class="card">
+                        <h3>Request Leave</h3>
+                        <form id="staff-leave-form">
+                            <div class="form-group">
+                                <label for="leave-date">Date</label>
+                                <input type="date" id="leave-date" class="form-control" required value="${today()}">
+                            </div>
+                            <div class="form-group">
+                                <label for="leave-type">Type</label>
+                                <select id="leave-type" class="form-control" required>
+                                    <option>Full</option>
+                                    <option>Half</option>
+                                    <option>Short</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="leave-minutes-group" style="display:none;">
+                                <label for="leave-minutes">Minutes</label>
+                                <input type="number" id="leave-minutes" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="leave-reason">Reason</label>
+                                <textarea id="leave-reason" class="form-control" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                        </form>
+                    </div>
+                    <div class="card">
+                        <h3>My Leave History</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>Applied</th><th>Date</th><th>Type</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    ${myLeaves.map(l => {
+                                        const statusPill = l.status === 'Approved' ? 'pill-ok' : (l.status === 'Pending' ? 'pill-warn' : 'pill-err');
+                                        return `
+                                            <tr>
+                                                <td>${formatDateTime(l.appliedAt)}</td>
+                                                <td>${l.date}</td>
+                                                <td>${l.type}${l.type === 'Short' && l.minutes ? ` (${l.minutes}m)` : ''}</td>
+                                                <td><span class="pill ${statusPill}">${l.status}</span></td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${myLeaves.length === 0 ? '<tr><td colspan="4" class="text-center">No leave history.</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffRequests() {
+             const { currentUser } = state.ui;
+             const myRequests = state.inbox.requests.filter(r => r.staffId === currentUser.id);
+             const mySalaryRequests = state.inbox.salaryRequests.filter(r => r.staffId === currentUser.id);
+
+            return `
+                <h2>My Requests</h2>
+                <div class="card mb-4">
+                    <h3>New Request</h3>
+                    <form id="new-request-form">
+                        <div class="form-group">
+                            <label for="request-type">Type</label>
+                            <select id="request-type" class="form-control">
+                                <option value="message">General Message</option>
+                                <option value="equipment">Equipment Request</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="request-subject">Subject</label>
+                            <input type="text" id="request-subject" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="request-message">Message</label>
+                            <textarea id="request-message" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Request</button>
+                    </form>
+                </div>
+                <div class="card mb-4">
+                    <h3>New Salary Advance Request</h3>
+                    <form id="salary-request-form">
+                        <div class="form-group">
+                            <label for="salary-amount">Amount</label>
+                            <input type="number" id="salary-amount" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="salary-reason">Reason</label>
+                            <textarea id="salary-reason" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Request Advance</button>
+                    </form>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="card">
+                        <h3>My General Requests</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>When</th><th>Subject</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    ${myRequests.map(r => `
+                                        <tr>
+                                            <td>${formatDateTime(r.appliedAt)}</td>
+                                            <td>${r.subject}</td>
+                                            <td><span class="pill pill-warn">${r.status}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>My Salary Requests</h3>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead><tr><th>When</th><th>Amount</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    ${mySalaryRequests.map(r => `
+                                        <tr>
+                                            <td>${formatDateTime(r.appliedAt)}</td>
+                                            <td>${r.amount}</td>
+                                            <td><span class="pill pill-warn">${r.status}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStaffHolidays() {
+            const todayDate = new Date(today());
+            todayDate.setHours(0, 0, 0, 0); // Normalize to start of day
+            
+            const upcomingHolidays = state.holidays
+                .filter(h => new Date(h.date) >= todayDate)
+                .sort((a,b) => new Date(a.date) - new Date(b.date));
+            return `
+                <h2>Company Holidays</h2>
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Date</th><th>Holiday</th></tr></thead>
+                            <tbody>
+                                ${upcomingHolidays.map(h => `
+                                    <tr>
+                                        <td>${formatDate(h.date)}</td>
+                                        <td>${h.title}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderStaffNoticeBoard() {
+            const { notices } = state;
+            const { currentCentre } = state.ui;
+            const relevantNotices = notices.filter(n => n.centre === 'All' || n.centre === currentCentre)
+                .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt));
+
+            return `
+                <h2>Notice Board</h2>
+                ${relevantNotices.map(n => `
+                    <div class="card">
+                        <h4>${n.title}</h4>
+                        <p class="text-sm text-light">${formatDateTime(n.postedAt)}</p>
+                        <p class="mt-4">${n.body}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        function renderStaffProfile() {
+            const { currentUser } = state.ui;
+            const profile = state.profiles[currentUser.id] || {};
+            return `
+                <h2>My Profile</h2>
+                <div class="card">
+                    <ul class="info-list">
+                        <li><span>Name</span> <span>${currentUser.name}</span></li>
+                        <li><span>Role</span> <span>${currentUser.role}</span></li>
+                        <li><span>Default Centre</span> <span>${currentUser.defaultWorksite}</span></li>
+                        <li><span>Phone</span> <span>${profile.phone || 'N/A'}</span></li>
+                        <li><span>Email</span> <span>${profile.email || 'N/A'}</span></li>
+                        <li><span>Reward Points</span> <span>${profile.performance?.points || 0}</span></li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>My Documents</h3>
+                    <ul id="staff-doc-list">
+                        ${(profile.documents || []).map((doc, index) => `
+                            <li class="flex justify-between items-center p-2 border-b">
+                                <a href="${doc.dataUrl}" download="${doc.name}">${doc.name}</a>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <div class="form-group mt-4">
+                        <label for="doc-upload">Upload New Document</label>
+                        <input type="file" id="doc-upload" class="form-control">
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- DRAWER & MODAL RENDERERS ---
+
+        function renderStaffProfileDrawer(staffId) {
+            const staffMember = state.staff.find(s => s.id === staffId);
+            const profile = state.profiles[staffId] || {};
+            if (!staffMember) return;
+
+            const totalSessions = state.sessions.filter(s => s.staffId === staffId).length;
+            const totalWorkedMins = state.sessions
+                .filter(s => s.staffId === staffId && s.clockOut)
+                .reduce((acc, s) => acc + workedMinutes(s.staffId, s.date), 0);
+
+            const drawerContent = document.getElementById('drawer-content');
+            drawerContent.innerHTML = `
+                <div class="drawer-header">
+                    <h3 class="drawer-title">${staffMember.name}'s Profile</h3>
+                    <button class="drawer-close" data-action="close-drawer">&times;</button>
+                </div>
+                <div class="drawer-body">
+                    <div class="card">
+                        <div class="grid grid-cols-3">
+                            <div class="profile-kpi">
+                                <div class="value">${totalSessions}</div>
+                                <div class="label">Total Sessions</div>
+                            </div>
+                            <div class="profile-kpi">
+                                <div class="value">${minToHHMM(totalWorkedMins)}</div>
+                                <div class="label">Total Worked</div>
+                            </div>
+                            <div class="profile-kpi">
+                                <div class="value">${profile.performance?.points || 0}</div>
+                                <div class="label">Points</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h4>Information</h4>
+                        <ul class="info-list">
+                            <li><span>Joined Date</span> <span>${formatDate(staffMember.joinDate)}</span></li>
+                            <li><span>Role</span> <span>${staffMember.role}</span></li>
+                            <li><span>Default Centre</span> <span>${staffMember.defaultWorksite}</span></li>
+                            <li><span>Phone</span> <span>${profile.phone || 'N/A'}</span></li>
+                            <li><span>Email</span> <span>${profile.email || 'N/A'}</span></li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Documents</h4>
+                        <ul id="profile-doc-list">
+                           ${(profile.documents || []).map((doc, index) => `
+                                <li class="flex justify-between items-center p-2 border-b">
+                                    <a href="${doc.dataUrl}" download="${doc.name}">${doc.name}</a>
+                                    <button class="btn btn-danger btn-sm" data-action="delete-staff-doc" data-staff-id="${staffId}" data-doc-index="${index}">Delete</button>
+                                </li>
+                           `).join('')}
+                        </ul>
+                        <div class="form-group mt-4">
+                            <label for="profile-doc-upload">Upload Document</label>
+                            <input type="file" id="profile-doc-upload" data-staff-id="${staffId}" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('drawer-overlay').classList.add('visible');
+        }
+        
+        function showModal(title, message, onConfirm) {
+            const container = document.getElementById('modal-container');
+            const modalId = `modal-${Date.now()}`;
+            const modalHTML = `
+                <div class="modal-overlay" id="${modalId}">
+                    <div class="modal-content">
+                        <h3>${title}</h3>
+                        <p>${message}</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary" data-action="close-modal" data-target="${modalId}">Cancel</button>
+                            <button class="btn btn-primary" data-action="confirm-modal" data-target="${modalId}">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = modalHTML;
+            
+            const confirmBtn = container.querySelector('[data-action="confirm-modal"]');
+            confirmBtn.addEventListener('click', () => {
+                onConfirm();
+                closeModal(modalId);
+            }, { once: true });
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.remove();
+        }
+        
+        function showSpinner(message = "Loading...") {
+            const container = document.getElementById('modal-container');
+            container.innerHTML = `
+                <div class="modal-overlay">
+                    <div class="modal-content text-center">
+                        <div class="spinner"></div>
+                        <p>${message}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function hideSpinner() {
+            document.getElementById('modal-container').innerHTML = '';
+        }
+
+        // --- EVENT HANDLERS & LOGIC ---
+        
+        /**
+         * Attaches event listeners to elements that are recreated on each render, like forms and inputs.
+         * This function is called at the end of every render.
+         */
+        function attachDynamicListeners() {
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) loginForm.addEventListener('submit', handleLogin);
+            
+            const addShiftForm = document.getElementById('add-shift-form');
+            if(addShiftForm) addShiftForm.addEventListener('submit', handleAddShift);
+            
+            const addStaffForm = document.getElementById('add-staff-form');
+            if(addStaffForm) addStaffForm.addEventListener('submit', handleAddStaff);
+
+            const attendanceFilterForm = document.getElementById('attendance-filter-form');
+            if(attendanceFilterForm) attendanceFilterForm.addEventListener('submit', handleRunAttendanceReport);
+            
+            const leaveTypeSelect = document.getElementById('leave-type');
+            if(leaveTypeSelect) leaveTypeSelect.addEventListener('change', handleLeaveTypeChange);
+
+            const adminLeaveForm = document.getElementById('admin-leave-form');
+            if(adminLeaveForm) adminLeaveForm.addEventListener('submit', handleAdminLeaveSubmit);
+            
+            const staffLeaveForm = document.getElementById('staff-leave-form');
+            if(staffLeaveForm) staffLeaveForm.addEventListener('submit', handleStaffLeaveSubmit);
+
+            const addHolidayForm = document.getElementById('add-holiday-form');
+            if (addHolidayForm) addHolidayForm.addEventListener('submit', handleAddHoliday);
+            
+            const settingsForm = document.getElementById('settings-form');
+            if (settingsForm) settingsForm.addEventListener('submit', handleSaveSettings);
+            
+            const postNoticeForm = document.getElementById('post-notice-form');
+            if (postNoticeForm) postNoticeForm.addEventListener('submit', handlePostNotice);
+
+            const newRequestForm = document.getElementById('new-request-form');
+            if(newRequestForm) newRequestForm.addEventListener('submit', handleNewRequest);
+
+            const salaryRequestForm = document.getElementById('salary-request-form');
+            if(salaryRequestForm) salaryRequestForm.addEventListener('submit', handleSalaryRequest);
+
+            const awardPointsForm = document.getElementById('award-points-form');
+            if(awardPointsForm) awardPointsForm.addEventListener('submit', handleAwardPoints);
+
+            const profileDocUpload = document.getElementById('profile-doc-upload');
+            if(profileDocUpload) profileDocUpload.addEventListener('change', handleDocUpload);
+
+            const staffDocUpload = document.getElementById('doc-upload');
+            if(staffDocUpload) staffDocUpload.addEventListener('change', handleStaffDocUpload);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const centre = document.getElementById('centre').value;
+            const pin = document.getElementById('pin').value;
+            const errorDiv = document.getElementById('login-error');
+
+            if (pin === '0000') {
+                state.ui.currentUser = { name: 'Admin', role: 'Admin' };
+                state.ui.currentCentre = centre;
+                saveState();
+                render();
+                return;
+            }
+
+            const staffMember = state.staff.find(s => s.pin === pin);
+            if (staffMember && staffMember.active) {
+                state.ui.currentUser = staffMember;
+                state.ui.currentCentre = centre;
+                saveState();
+                render();
+            } else {
+                errorDiv.textContent = 'Invalid PIN or Inactive Account.';
+            }
+        }
+        
+        function handleLogout() {
+            state.ui.currentUser = null;
+            state.ui.currentCentre = null;
+            state.ui.activeTab = null;
+            saveState();
+            render();
+        }
+
+        // --- Action Handlers ---
+
+        function handleAddShift(e) {
+            e.preventDefault();
+            const form = e.target;
+            const newShift = {
+                id: Date.now(),
+                date: form.querySelector('#shift-date').value,
+                centre: form.querySelector('#shift-centre').value,
+                staffId: form.querySelector('#shift-staff').value,
+                start: form.querySelector('#shift-start').value,
+                end: form.querySelector('#shift-end').value,
+                notes: form.querySelector('#shift-notes').value,
+            };
+            state.shifts.push(newShift);
+            saveState();
+            renderTabContent();
+            form.reset();
+        }
+
+        function handleDeleteShift(id) {
+            state.shifts = state.shifts.filter(s => s.id != id);
+            saveState();
+            renderTabContent();
+        }
+        
+        function handleAddStaff(e) {
+            e.preventDefault();
+            const form = e.target;
+            const newStaff = {
+                id: form.querySelector('#staff-id').value,
+                name: form.querySelector('#staff-name').value,
+                role: form.querySelector('#staff-role').value,
+                pin: form.querySelector('#staff-pin').value,
+                defaultWorksite: form.querySelector('#staff-centre').value,
+                joinDate: today(),
+                active: true,
+            };
+            if (state.staff.some(s => s.id === newStaff.id)) {
+                alert('Staff ID already exists.');
+                return;
+            }
+            state.staff.push(newStaff);
+            state.profiles[newStaff.id] = { phone: "", email: "", performance: { points: 0 }, documents: [] };
+            saveState();
+            renderTabContent();
+            form.reset();
+        }
+
+        function handleToggleStaffStatus(id) {
+            const staffMember = state.staff.find(s => s.id === id);
+            if (staffMember) {
+                staffMember.active = !staffMember.active;
+                saveState();
+                renderTabContent();
+            }
+        }
+
+        function handleRemoveStaff(id) {
+            showModal(
+                'Confirm Removal',
+                `Are you sure you want to remove staff ID ${id}? This will remove the staff member and their profile. This action cannot be undone.`,
+                () => {
+                    state.staff = state.staff.filter(s => s.id !== id);
+                    delete state.profiles[id];
+                    saveState();
+                    renderTabContent();
+                }
+            );
+        }
+        
+        function handleRunAttendanceReport(e) {
+            e.preventDefault();
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            const staffIdFilter = document.getElementById('staff-select').value;
+            const centreFilter = document.getElementById('centre-select').value;
+            const container = document.getElementById('attendance-report-container');
+
+            const reportMap = new Map();
+
+            for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toLocaleDateString('en-CA');
+                const staffForDay = state.staff.filter(s => staffIdFilter === 'All' || s.id === staffIdFilter);
+
+                for (const staffMember of staffForDay) {
+                    const sessionsForDay = state.sessions.filter(s => s.staffId === staffMember.id && s.date === dateStr && s.clockOut);
+                    if (sessionsForDay.length > 0) {
+                        const relevantSession = sessionsForDay.find(s => centreFilter === 'All' || s.centre === centreFilter);
+                        if (relevantSession) {
+                             const key = `${staffMember.id}-${dateStr}`;
+                             if (!reportMap.has(key)) {
+                                const worked = workedMinutes(staffMember.id, dateStr);
+                                reportMap.set(key, {
+                                    name: staffMember.name,
+                                    date: dateStr,
+                                    centre: relevantSession.centre,
+                                    workedMins: worked,
+                                    workedHHMM: minToHHMM(worked)
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            const reportData = Array.from(reportMap.values());
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead><tr><th>Staff</th><th>Date</th><th>Centre</th><th>Worked (mins)</th><th>Worked (hh:mm)</th></tr></thead>
+                            <tbody>
+                                ${reportData.map(row => `
+                                    <tr>
+                                        <td>${row.name}</td>
+                                        <td>${row.date}</td>
+                                        <td>${row.centre}</td>
+                                        <td>${row.workedMins}</td>
+                                        <td>${row.workedHHMM}</td>
+                                    </tr>
+                                `).join('')}
+                                ${reportData.length === 0 ? '<tr><td colspan="5" class="text-center">No data for selected filters.</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleLeaveTypeChange(e) {
+            const minutesGroup = document.getElementById('leave-minutes-group');
+            minutesGroup.style.display = e.target.value === 'Short' ? 'block' : 'none';
+        }
+
+        function handleAdminLeaveSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const type = form.querySelector('#leave-type').value;
+            const newLeave = {
+                id: Date.now(),
+                staffId: form.querySelector('#leave-staff').value,
+                date: form.querySelector('#leave-date').value,
+                type: type,
+                minutes: type === 'Short' ? (form.querySelector('#leave-minutes').valueAsNumber || 0) : 0,
+                reason: form.querySelector('#leave-reason').value,
+                status: 'Approved',
+                appliedAt: now()
+            };
+            state.leaves.push(newLeave);
+            saveState();
+            renderTabContent();
+        }
+        
+        function handleStaffLeaveSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const type = form.querySelector('#leave-type').value;
+            const newLeave = {
+                id: Date.now(),
+                staffId: state.ui.currentUser.id,
+                date: form.querySelector('#leave-date').value,
+                type: type,
+                minutes: type === 'Short' ? (form.querySelector('#leave-minutes').valueAsNumber || 0) : 0,
+                reason: form.querySelector('#leave-reason').value,
+                status: 'Pending',
+                appliedAt: now()
+            };
+            state.leaves.push(newLeave);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleUpdateLeave(id, status) {
+            const leave = state.leaves.find(l => l.id == id);
+            if (leave) {
+                leave.status = status;
+                saveState();
+                renderTabContent();
+            }
+        }
+        
+        function handleAddHoliday(e) {
+            e.preventDefault();
+            const newHoliday = {
+                id: Date.now(),
+                date: document.getElementById('holiday-date').value,
+                title: document.getElementById('holiday-title').value,
+            };
+            state.holidays.push(newHoliday);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleDeleteHoliday(id) {
+            state.holidays = state.holidays.filter(h => h.id != id);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            state.settings.org = document.getElementById('setting-org').value;
+            state.settings.breakMins = document.getElementById('setting-break').valueAsNumber;
+            state.settings.targetMins = document.getElementById('setting-target').valueAsNumber;
+            state.settings.halfDayMins = document.getElementById('setting-halfday').valueAsNumber;
+            state.settings.webhook = document.getElementById('setting-webhook').value;
+            saveState();
+            alert('Settings saved!');
+            render(); // Full re-render to update selectors
+        }
+
+        function handleAddCentre() {
+            const input = document.getElementById('new-centre-name');
+            const newCentre = input.value.trim();
+            if (newCentre && !state.settings.centres.includes(newCentre)) {
+                state.settings.centres.push(newCentre);
+                saveState();
+                renderTabContent();
+            }
+            input.value = '';
+        }
+
+        function handleRemoveCentre(centre) {
+            state.settings.centres = state.settings.centres.filter(c => c !== centre);
+            saveState();
+            renderTabContent();
+        }
+
+        function handlePostNotice(e) {
+            e.preventDefault();
+            const newNotice = {
+                id: Date.now(),
+                title: document.getElementById('notice-title').value,
+                body: document.getElementById('notice-body').value,
+                centre: document.getElementById('notice-centre').value,
+                postedAt: now()
+            };
+            state.notices.push(newNotice);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleDeleteNotice(id) {
+            state.notices = state.notices.filter(n => n.id != id);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleNewRequest(e) {
+            e.preventDefault();
+            const newReq = {
+                id: Date.now(),
+                staffId: state.ui.currentUser.id,
+                type: document.getElementById('request-type').value,
+                subject: document.getElementById('request-subject').value,
+                message: document.getElementById('request-message').value,
+                status: 'Pending',
+                appliedAt: now()
+            };
+            state.inbox.requests.push(newReq);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleSalaryRequest(e) {
+            e.preventDefault();
+            const newReq = {
+                id: Date.now(),
+                staffId: state.ui.currentUser.id,
+                amount: document.getElementById('salary-amount').value,
+                reason: document.getElementById('salary-reason').value,
+                status: 'Pending',
+                appliedAt: now()
+            };
+            state.inbox.salaryRequests.push(newReq);
+            saveState();
+            renderTabContent();
+        }
+
+        function handleAwardPoints(e) {
+            e.preventDefault();
+            const staffId = document.getElementById('reward-staff').value;
+            const points = document.getElementById('reward-points').valueAsNumber;
+            
+            if (!state.profiles[staffId]) {
+                 state.profiles[staffId] = { performance: { points: 0 }};
+            }
+            if (!state.profiles[staffId].performance) {
+                 state.profiles[staffId].performance = { points: 0 };
+            }
+            state.profiles[staffId].performance.points += points;
+            saveState();
+            renderTabContent();
+        }
+        
+        function handleClockIn() {
+            const { currentUser, currentCentre } = state.ui;
+            const newSession = {
+                id: Date.now(),
+                staffId: currentUser.id,
+                centre: currentCentre,
+                date: today(),
+                clockIn: now(),
+                clockOut: null,
+                breaks: []
+            };
+            state.sessions.push(newSession);
+            saveState();
+            renderTabContent();
+        }
+        
+        function handleClockOut() {
+            const { currentUser } = state.ui;
+            const session = state.sessions.find(s => s.staffId === currentUser.id && s.date === today() && !s.clockOut);
+            if (session) {
+                const openBreak = session.breaks.find(b => b.start && !b.end);
+                if (openBreak) openBreak.end = now();
+
+                session.clockOut = now();
+                saveState();
+                renderTabContent();
+            }
+        }
+        
+        function handleBreakStart() {
+            const { currentUser } = state.ui;
+            const session = state.sessions.find(s => s.staffId === currentUser.id && s.date === today() && !s.clockOut);
+            if (session) {
+                session.breaks.push({ start: now(), end: null });
+                saveState();
+                renderTabContent();
+            }
+        }
+
+        function handleBreakEnd() {
+            const { currentUser } = state.ui;
+            const session = state.sessions.find(s => s.staffId === currentUser.id && s.date === today() && !s.clockOut);
+            if (session) {
+                const openBreak = session.breaks.find(b => b.start && !b.end);
+                if (openBreak) {
+                    openBreak.end = now();
+                    saveState();
+                    renderTabContent();
+                }
+            }
+        }
+
+        function handleDocUpload(e) {
+            const file = e.target.files[0];
+            const staffId = e.target.dataset.staffId;
+            if (!file || !staffId) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newDoc = { name: file.name, dataUrl: event.target.result };
+                if (!state.profiles[staffId]) state.profiles[staffId] = {};
+                if (!state.profiles[staffId].documents) state.profiles[staffId].documents = [];
+                
+                state.profiles[staffId].documents.push(newDoc);
+                saveState();
+                renderStaffProfileDrawer(staffId);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleStaffDocUpload(e) {
+            const file = e.target.files[0];
+            const staffId = state.ui.currentUser.id;
+            if (!file || !staffId) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const newDoc = { name: file.name, dataUrl: event.target.result };
+                if (!state.profiles[staffId]) state.profiles[staffId] = {};
+                if (!state.profiles[staffId].documents) state.profiles[staffId].documents = [];
+
+                state.profiles[staffId].documents.push(newDoc);
+                saveState();
+                renderTabContent();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleDeleteStaffDoc(staffId, docIndex) {
+            showModal('Confirm Deletion', 'Are you sure you want to delete this document?', () => {
+                state.profiles[staffId].documents.splice(docIndex, 1);
+                saveState();
+                renderStaffProfileDrawer(staffId);
+            });
+        }
+
+        // --- EXPORT & WEBHOOK LOGIC ---
+        function handleExportCSV(type) {
+            let data, headers;
+            switch(type) {
+                case 'staff': 
+                    headers = ['id', 'name', 'role', 'defaultWorksite', 'joinDate', 'active'];
+                    data = state.staff;
+                    break;
+                case 'sessions':
+                    headers = ['id', 'staffId', 'centre', 'date', 'clockIn', 'clockOut'];
+                    data = state.sessions;
+                    break;
+                case 'leaves':
+                    headers = ['id', 'staffId', 'date', 'type', 'minutes', 'status', 'appliedAt'];
+                    data = state.leaves;
+                    break;
+                case 'shifts':
+                    headers = ['id', 'staffId', 'centre', 'date', 'start', 'end'];
+                    data = state.shifts;
+                    break;
+                default: return;
+            }
+
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => `"${row[header] || ''}"`).join(','))
+            ].join('\n');
+
+            downloadFile(`${type}_${today()}.csv`, csvContent, 'text/csv');
+        }
+
+        function handleExportJSON() {
+            const jsonContent = JSON.stringify(state, null, 2);
+            downloadFile(`mls_backup_${today()}.json`, jsonContent, 'application/json');
+        }
+
+        function downloadFile(filename, content, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function handleTestWebhook() {
+            const url = state.settings.webhook;
+            if (!url) return alert('Webhook URL is not set in Settings.');
+            showSpinner('Testing webhook...');
+            try {
+                const response = await fetch(url, { method: 'GET', mode: 'no-cors' });
+                hideSpinner();
+                alert('Webhook test signal sent. Note: Due to CORS, we cannot confirm receipt. Check your server logs.');
+            } catch (error) {
+                hideSpinner();
+                alert(`Webhook test failed. Error: ${error.message}. This is expected for cross-origin requests.`);
+            }
+        }
+        
+        async function handleLoadWebhook() {
+            const url = state.settings.webhook;
+            if (!url) return alert('Webhook URL is not set in Settings.');
+            
+            showModal(
+                'Load from Webhook?',
+                'This will replace all your local data with data from the webhook. This action cannot be undone. Are you sure?',
+                async () => {
+                    showSpinner('Loading data from webhook...');
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const data = await response.json();
+                        
+                        if (data.settings && data.staff && data.sessions) {
+                            state = data;
+                            saveState();
+                            hideSpinner();
+                            alert('Data loaded successfully from webhook.');
+                            handleLogout();
+                        } else {
+                            throw new Error('Invalid data structure received from webhook.');
+                        }
+                    } catch (error) {
+                        hideSpinner();
+                        alert(`Failed to load from webhook: ${error.message}`);
+                    }
+                }
+            );
+        }
+
+        async function handleSyncWebhook() {
+            const url = state.settings.webhook;
+            if (!url) return alert('Webhook URL is not set in Settings.');
+            
+            const method = url.endsWith('.json') ? 'PUT' : 'POST';
+            
+            showModal(
+                'Sync to Webhook?',
+                `This will send all your local data to the webhook URL using the ${method} method.`,
+                async () => {
+                    showSpinner('Syncing data...');
+                    try {
+                        await fetch(url, {
+                            method: method,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(state)
+                        });
+                        hideSpinner();
+                        alert('Sync data sent to webhook. Check your server to confirm receipt.');
+                    } catch (error) {
+                        hideSpinner();
+                        alert(`Failed to sync to webhook: ${error.message}`);
+                    }
+                }
+            );
+        }
+
+
+        // --- INITIALIZATION ---
+        function init() {
+            App.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-action], .tab-item, #add-centre-btn, #drawer-overlay');
+                if (!target) return;
+
+                if (target.classList.contains('tab-item')) {
+                    state.ui.activeTab = target.dataset.tab;
+                    saveState();
+                    render();
+                    return;
+                }
+
+                if (target.id === 'add-centre-btn') {
+                    handleAddCentre();
+                    return;
+                }
+                
+                if (target.id === 'drawer-overlay') {
+                    document.getElementById('drawer-overlay').classList.remove('visible');
+                    return;
+                }
+
+                const action = target.dataset.action;
+                if (!action) return;
+
+                switch(action) {
+                    case 'logout': handleLogout(); break;
+                    case 'test-webhook': handleTestWebhook(); break;
+                    case 'load-webhook': handleLoadWebhook(); break;
+                    case 'sync-webhook': handleSyncWebhook(); break;
+                    case 'close-modal': closeModal(target.dataset.target); break;
+                    case 'close-drawer': document.getElementById('drawer-overlay').classList.remove('visible'); break;
+                    case 'delete-shift': handleDeleteShift(target.dataset.id); break;
+                    case 'toggle-staff-status': handleToggleStaffStatus(target.dataset.id); break;
+                    case 'view-staff-profile': renderStaffProfileDrawer(target.dataset.id); break;
+                    case 'remove-staff': handleRemoveStaff(target.dataset.id); break;
+                    case 'update-leave': handleUpdateLeave(target.dataset.id, target.dataset.status); break;
+                    case 'delete-holiday': handleDeleteHoliday(target.dataset.id); break;
+                    case 'remove-centre': handleRemoveCentre(target.dataset.centre); break;
+                    case 'export-csv': handleExportCSV(target.dataset.type); break;
+                    case 'export-json': handleExportJSON(); break;
+                    case 'delete-notice': handleDeleteNotice(target.dataset.id); break;
+                    case 'delete-staff-doc': handleDeleteStaffDoc(target.dataset.staffId, target.dataset.docIndex); break;
+                    case 'clock-in': handleClockIn(); break;
+                    case 'clock-out': handleClockOut(); break;
+                    case 'break-start': handleBreakStart(); break;
+                    case 'break-end': handleBreakEnd(); break;
+                }
+            });
+
+            const existingState = getState();
+            if (existingState) {
+                state = existingState;
+            } else {
+                state = getSeedState();
+                saveState();
+                setTimeout(() => {
+                    alert('Welcome to MLS DAILY!\n\nSample Logins:\nAdmin PIN: 0000\nStaff PINs: 1001, 1002');
+                }, 100);
+            }
+            render();
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
