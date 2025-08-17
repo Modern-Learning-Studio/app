@@ -100,22 +100,50 @@ kbd[data-copied]::after{
 </style>
 <!-- Optional Firebase loader: Add your config below to enable Firestore + Anonymous Auth. If absent, app runs in local demo mode. -->
 <script type="module" id="firebase-loader">
-// Example (fill and remove the leading slashes):
-// window.FIREBASE_CONFIG = {
-//   apiKey: "YOUR_KEY",
-//   authDomain: "your-app.firebaseapp.com",
-//   projectId: "your-app",
-//   storageBucket: "your-app.appspot.com",
-//   messagingSenderId: "123",
-//   appId: "1:123:web:abc"
-// };
+  // Firebase config for LEAP (Realtime Database + Anonymous Auth)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXXcN3uBSWRLFTlUibBnO4b6CfVXblwm0",
+    authDomain: "leap-c8235.firebaseapp.com",
+    databaseURL: "https://leap-c8235-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "leap-c8235",
+    storageBucket: "leap-c8235.appspot.com",
+    messagingSenderId: "420890724776",
+    appId: "1:420890724776:web:e7b52d6bc5f9af91b3359d",
+    measurementId: "G-CVKJ5EY3VM"
+  };
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const app = initializeApp(firebaseConfig);
+  try { getAnalytics(app); } catch(e) { /* ignore when not supported */ }
+
+  const auth = getAuth(app);
+  await signInAnonymously(auth);
+
+  const rtdb = getDatabase(app);
+  const PATH = "leap/storage";
+
+  // Expose helpers for the app
+  window.LEAP_LOAD = async () => {
+    const snap = await get(ref(rtdb, PATH));
+    return snap.exists() ? snap.val() : null;
+  };
+  window.LEAP_SAVE = async (data) => {
+    try { await set(ref(rtdb, PATH), data); } catch(e){ console.error("RTDB save failed:", e); }
+  };
+
+  // Update mode badge
+  try { const b = document.getElementById("modeBadge"); if (b) b.textContent = "Firebase: Realtime DB"; } catch(e){}
 </script>
 </head>
 <body>
 <header class="app" aria-label="App Header">
   <div class="wrap">
     <h1 class="title">LEAP — Child’s Learner Profile • <span class="small">By Finnish School &amp; Modern Learning Studio</span></h1>
-    <span class="badge" id="modeBadge" aria-live="polite" title="Storage Mode">Demo Storage</span>
+    <div class="right-controls" style="display:flex;gap:8px;align-items:center;"><span class="badge" id="modeBadge" aria-live="polite" title="Storage Mode">Demo Storage</span><button class="btn secondary" id="btnLogout" onclick="logout()" style="display:none">Log out</button></div>
   </div>
   <div class="stepper" role="navigation" aria-label="Progress">
     <div class="step" id="st-auth"><span class="dot"></span><label>Auth</label></div>
@@ -158,7 +186,7 @@ kbd[data-copied]::after{
 
     <div id="adminPane" class="card hidden" aria-live="polite">
       <h3>Administrator sign‑in</h3>
-      <div class="kv"><label for="adminPass">Administrator passcode</label><input id="adminPass" type="password" inputmode="numeric" placeholder="311987" aria-label="Administrator passcode"></div>
+      <div class="kv"><label for="adminPass">Administrator passcode</label><input id="adminPass" type="password" inputmode="numeric" placeholder="Passcode" aria-label="Administrator passcode"></div>
       <div class="right"><button class="btn" onclick="authAdmin()">Enter as Administrator</button></div>
       <p class="small">Administrators can create Centers, Teachers, Parents, and Students, and generate unique login codes and class codes.</p>
     </div>
@@ -533,59 +561,48 @@ function setStep(active){
 function showSection(id){
   ["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
   $("#"+id).classList.remove("hidden");
+
+  const lo = document.getElementById('btnLogout');
+  if(lo){ lo.style.display = (id==='authSection') ? 'none' : 'inline-flex'; }
+}
+
+
+function logout(){
+  // Clear app session (keep data)
+  state.role = null;
+  state.teacherId = null;
+  state.parentId = null;
+  state.childId = null;
+  state.currentChild = null;
+  state.quiz = {idx:0, answers:[]};
+  state.parentAnswers = null;
+  state.teacherAnswers = null;
+  try{
+    localStorage.removeItem("LEAP_lastRole");
+    localStorage.removeItem("LEAP_teacherId");
+    localStorage.removeItem("LEAP_parentId");
+  }catch(e){}
+  // Reset role panes selection
+  ['admin','teacher','parent','instant'].forEach(r=>{
+    const pane = document.getElementById(r+'Pane');
+    if(pane) pane.classList.add('hidden');
+    const btn = document.getElementById('btnRole_'+r);
+    if(btn) btn.classList.remove('selected');
+  });
+  setStep('st-auth');
+  showSection('authSection');
+  // Clear any sign-in inputs
+  const ids = ['adminPass','teacherCode','parentCode','instantCode'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.value='' } });
 }
 
 /* -------------------------------------------
-   Optional Firebase (minimal adapter; local by default)
+   Optional Firebase (indicator only; RTDB handled by loader)
 --------------------------------------------*/
-(async function initFirebaseIfProvided(){
-  const cfg = window.FIREBASE_CONFIG;
-  if(!cfg){
-    $("#modeBadge").textContent = "Demo Storage";
-    return; // local demo
-  }
-  try{
-    // Load Firebase modules from CDN
-    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-    const app = appMod.initializeApp(cfg);
-    const auth = authMod.getAuth(app);
-    await authMod.signInAnonymously(auth);
-    const db = fsMod.getFirestore(app);
-
-    // Very light adapter: store a single top-level document that mirrors demo DB.
-    // (This keeps the code compact; for production, map to collections as specified.)
-    const docRef = fsMod.doc(db, "leap_singleton","demo_storage");
-    async function cloudPull(){
-      const snap = await fsMod.getDoc(docRef);
-      if(snap.exists()){
-        localStorage.setItem(DEMO_KEY, JSON.stringify(snap.data()));
-      }else{
-        await fsMod.setDoc(docRef, loadDB());
-      }
-    }
-    async function cloudPush(){
-      await fsMod.setDoc(docRef, loadDB());
-    }
-
-    // Override saveDB to also push to Firestore
-    const origSave = saveDB;
-    saveDB = function(dbObj){
-      localStorage.setItem(DEMO_KEY, JSON.stringify(dbObj));
-      cloudPush();
-    }
-    await cloudPull();
-    state.firebaseEnabled = true;
-    $("#modeBadge").textContent = "Firebase Storage";
-  }catch(err){
-    console.warn("Firebase init failed; fallback to demo.", err);
-    $("#modeBadge").textContent = "Demo Storage";
-  }
-})();
-
-/* -------------------------------------------
+(function(){
+  const b = document.getElementById("modeBadge");
+  if (b) b.textContent = (window.LEAP_LOAD && window.LEAP_SAVE) ? "Firebase: Realtime DB" : "Demo Storage";
+})();/* -------------------------------------------
    Seed selects & tables
 --------------------------------------------*/
 function optionize(list, getVal, getLabel){
@@ -863,37 +880,30 @@ function adminGenerateClassCode(){
   saveDB(db); $("#classCodeResult").textContent="Class Code: "+code; refreshAdminViews();
 }
 
-function adminGenerateInstantCode(){
-  const db = getDB();
-  const code = makeLoginCode('instant');
-  const id = uid("code");
-  db.loginCodes[id] = {id, code, type:'instant', refId:null, centerId:null, active:true, usedBy:null};
-  saveDB(db);
-  const el = document.getElementById("codeInstantResult");
-  if(el) el.textContent = "Created: " + code;
-  refreshAdminViews();
-}
-
-
 /* -------------------------------------------
    Teacher
 --------------------------------------------*/
 function teacherAddChild(){
-  const name = $("#tChildName").value.trim();
-  const ageBand = $("#tAgeBand").value;
+  const name=$("#tChildName").value.trim(); const ageBand=$("#tAgeBand").value;
   if(!name) return alert("Enter child name");
-  const db = getDB();
-  const t = db.teachers[state.teacherId];
-  const id = uid("child");
-  const pin = makePin();
-  const parentJoinCode = makeParentJoin();
-  db.children[id] = { id, name, ageBand, centerId: (t&&t.centerId)||null, parentId: null, teacherId: state.teacherId, pin, parentJoinCode, parentCodeUsed:false, assess:{} };
-  t.students = Array.from(new Set([...(t.students||[]), id]));
+  const db=getDB(); const t=db.teachers[state.teacherId];
+  const id=uid("child"); const pin=makePin(); const parentJoinCode=makeParentJoin();
+  db.children[id]={id,name,ageBand,centerId:t.centerId,parentId:null,teacherId:t.id,pin,parentJoinCode,parentCodeUsed:false,assess:{}};
+  t.students = Array.from(new Set([...(t.students||[]),id]));
+  saveDB(db); $("#tChildName").value=""; refreshTeacherDash();
+
+
+function adminGenerateInstantCode(){
+  const db=getDB();
+  const code = makeLoginCode('instant');
+  const id=uid("code");
+  db.loginCodes[id]={id,code,type:'instant',refId:null,centerId:null,active:true,usedBy:null};
   saveDB(db);
-  $("#tChildName").value = "";
-  refreshTeacherDash();
+  $("#codeInstantResult").textContent = "Created: "+code;
+  refreshAdminViews();
 }
 
+}
 function startPinGate(childId){
   const db=getDB(); const ch=db.children[childId];
   state.childId=childId; state.currentChild=ch; state.quiz={idx:0,answers:[]};
@@ -964,16 +974,13 @@ function selectAnswer(i,mode){
   state.quiz.answers[i]=mode;
   setTimeout(()=>{
     if(state.quiz.idx < 29){
-      state.quiz.idx++; 
-      renderQuizQ();
+      state.quiz.idx++; renderQuizQ();
     }else{
       saveChildAnswers();
-      // After child section, go to Parent form automatically
       openParentForm(state.childId);
     }
   }, 120);
 }
-
 function saveChildAnswers(){
   const db=getDB(); const ch=db.children[state.childId];
   const c = countVAK(state.quiz.answers);
@@ -1684,6 +1691,34 @@ document.addEventListener("DOMContentLoaded", ()=>{
   }
 
 });
+</script>
+
+<!-- Local ↔ Firebase bridge -->
+<script>
+(function(){
+  // Pull remote into local once (non-blocking)
+  if (window.LEAP_LOAD) {
+    window.LEAP_LOAD().then(remote => {
+      if (remote && typeof remote === "object") {
+        try { localStorage.setItem("LEAP_DB", JSON.stringify(remote)); } catch(e){}
+        // Optional: refresh lightweight UIs if functions exist
+        try {
+          if (window.state && window.state.role==='teacher' && window.refreshTeacherDash) refreshTeacherDash();
+          if (window.state && window.state.role==='parent' && window.refreshParentDash) refreshParentDash();
+        } catch(e){}
+      }
+    }).catch(err => console.warn("LEAP_LOAD failed (using local demo store):", err));
+  }
+
+  // Wrap saveDB so it also writes to Firebase
+  const _saveDB = window.saveDB;
+  if (typeof _saveDB === "function") {
+    window.saveDB = function(db){
+      try { _saveDB(db); } catch(e) { console.error("Local save failed", e); }
+      if (window.LEAP_SAVE) { window.LEAP_SAVE(db); }
+    };
+  }
+})();
 </script>
 </body>
 </html>
