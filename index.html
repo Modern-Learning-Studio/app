@@ -288,6 +288,16 @@ kbd[data-copied]::after{
       <h3>Generate Login Codes</h3>
       <div class="row cols-3">
         <div class="card">
+          <h4>Admin Settings</h4>
+          <p class="small">Manual Firebase sync controls.</p>
+          <div class="row cols-2" style="gap:8px">
+            <button class="btn" onclick="adminSyncNow()">Upload local → Firebase</button>
+            <button class="btn secondary" onclick="adminPullFromCloud()">Pull Firebase → local</button>
+          </div>
+          <div id="adminSyncStatus" class="small" style="margin-top:6px;color:var(--muted)">Status: Ready</div>
+        </div>
+
+        <div class="card">
           <h4>Instant Access Code</h4>
           <p class="small">For one-off assessments without registration.</p>
           <div class="right"><button class="btn" onclick="adminGenerateInstantCode()">Generate I-code</button></div>
@@ -892,6 +902,61 @@ function teacherAddChild(){
   t.students = Array.from(new Set([...(t.students||[]),id]));
   saveDB(db); $("#tChildName").value=""; refreshTeacherDash();
 
+
+
+function adminSyncNow(){
+  const status = document.getElementById('adminSyncStatus');
+  if(!window.LEAP_SAVE){
+    if(status) status.textContent = "Status: Firebase loader not detected. Check the firebase-loader script/config.";
+    alert("Firebase is not connected. Please verify your firebase-loader block.");
+    return;
+  }
+  try{
+    const db = getDB();
+    status && (status.textContent = "Status: Uploading…");
+    Promise.resolve(window.LEAP_SAVE(db)).then(()=>{
+      status && (status.textContent = "Status: Uploaded to Firebase ✔");
+      alert("Local data uploaded to Firebase.");
+    }).catch(err=>{
+      console.error(err);
+      status && (status.textContent = "Status: Upload failed");
+      alert("Upload failed. See console for details.");
+    });
+  }catch(e){
+    console.error(e);
+    status && (status.textContent = "Status: Upload failed");
+    alert("Upload failed. See console for details.");
+  }
+}
+
+function adminPullFromCloud(){
+  const status = document.getElementById('adminSyncStatus');
+  if(!window.LEAP_LOAD){
+    if(status) status.textContent = "Status: Firebase loader not detected. Check the firebase-loader script/config.";
+    alert("Firebase is not connected. Please verify your firebase-loader block.");
+    return;
+  }
+  status && (status.textContent = "Status: Pulling…");
+  Promise.resolve(window.LEAP_LOAD()).then(remote=>{
+    if(remote && typeof remote === 'object'){
+      try{ localStorage.setItem("LEAP_DB", JSON.stringify(remote)); }catch(e){}
+      status && (status.textContent = "Status: Pulled from Firebase ✔ (local refreshed)");
+      // Soft refresh dash if logged in
+      const role = state.role;
+      if(role==='teacher') { try{ refreshTeacherDash(); }catch(e){} }
+      if(role==='parent')  { try{ refreshParentDash(); }catch(e){} }
+      if(role==='admin')   { try{ refreshAdminViews(); }catch(e){} }
+      alert("Pulled from Firebase and refreshed local data.");
+    }else{
+      status && (status.textContent = "Status: No data at path");
+      alert("No data found at configured Firebase path.");
+    }
+  }).catch(err=>{
+    console.error(err);
+    status && (status.textContent = "Status: Pull failed");
+    alert("Pull failed. See console for details.");
+  });
+}
 
 function adminGenerateInstantCode(){
   const db=getDB();
@@ -1651,6 +1716,13 @@ document.addEventListener("click", (e)=>{
 });
 
 document.addEventListener("DOMContentLoaded", ()=>{
+  try{
+    if(window.LEAP_SAVE && window.LEAP_LOAD){
+      const mb = document.getElementById('modeBadge');
+      if(mb) mb.textContent = "Firebase: Realtime DB";
+    }
+  }catch(e){}
+
   $("#yearNow").textContent = (new Date()).getFullYear();
   setStep("st-auth"); showSection("authSection");
 
