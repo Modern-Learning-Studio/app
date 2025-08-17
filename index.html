@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LEAP — Child’s Learner Profile • By Finnish School &amp; Modern Learning Studio</title>
+<meta name="description" content="LEAP — Child’s Learner Profile: mobile-first learner preference assessment (Visual/Auditory/Kinesthetic/Multisensory) with Admin/Teacher/Parent flows, PIN-gated child quiz, charts, and printable report.">
+<style>
+:root{
+  --bg:#f6fbf7;
+  --ink:#0a1d12;
+  --muted:#5b6b61;
+  --brand:#166534;
+  --accent:#22c55e;
+  --accent-2:#059669;
+  --vcol:#15803d;
+  --acol:#65a30d;
+  --kcol:#0ea5a4;
+  --card-radius:22px;
+  --shadow:0 8px 24px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji"}
+a{color:var(--brand);}
+header.app{
+  position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#f6fbf7 0%, #f6fbf7cc 80%, transparent);
+  backdrop-filter:saturate(1.2) blur(6px); border-bottom:1px solid #e6efe8;
+}
+header .wrap{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 16px;}
+h1.title{font-size:16px;line-height:1.2;margin:0;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #dbe7df;border-radius:999px;padding:6px 10px;box-shadow:var(--shadow);font-size:12px;color:var(--brand)}
+.stepper{display:grid;grid-auto-flow:column;gap:6px;align-items:center;justify-content:center;padding:10px 8px 14px 8px}
+.step{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px dashed #cfe1d4;background:#ffffff}
+.step.active{background: #e9f7ee;border-color:var(--accent);}
+.step .dot{width:18px;height:18px;border-radius:999px;border:2px solid var(--muted);display:inline-block}
+.step.active .dot{border-color:var(--accent);background:var(--accent)}
+.step label{font-size:12px;color:var(--muted)}
+main{padding:16px;max-width:1100px;margin:0 auto}
+.card{background:#fff;border-radius:var(--card-radius);box-shadow:var(--shadow);padding:16px;margin:12px 0;border:1px solid #e6efe8}
+.card h2{margin-top:0;font-size:18px}
+.row{display:grid;gap:12px}
+@media(min-width:720px){.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:repeat(3,1fr)}}
+
+input[type=text],input[type=number],input[type=password],input[type=email],select,textarea{
+  width:100%;padding:12px 14px;border-radius:14px;border:1px solid #dbe7df;background:#fff;color:var(--ink);font-size:16px;outline:2px solid transparent;outline-offset:2px;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent)}
+button.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:999px;border:1px solid #cfe1d4;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+button.btn.secondary{background:#fff;color:var(--brand)}
+button.btn.ghost{background:transparent;color:var(--brand);border-color:transparent}
+button.tile{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;min-height:72px;padding:12px;border-radius:18px;border:2px solid #e0eee5;background:#fff;cursor:pointer;font-weight:600;text-align:center}
+button.tile:focus{outline:3px solid var(--accent)}
+button.tile.selected{border-color:var(--accent);box-shadow:0 0 0 4px #22c55e2a}
+.grid-choices{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.grid-choices{grid-template-columns:repeat(3,1fr)}}
+
+.pill{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e0eee5;border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:10px;align-items:center}
+.small{font-size:12px;color:var(--muted)}
+hr.sep{border:0;border-top:1px dashed #d8e6db;margin:10px 0}
+.tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#ecf7ef;color:var(--brand);font-size:12px;font-weight:700;border:1px solid #cce8d6}
+kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;border:1px solid #dfe9e2;border-bottom:3px solid #d0dfd3;border-radius:8px;padding:2px 6px;background:#fff}
+
+.status{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.status .dot{width:8px;height:8px;background:#cad8ce;border-radius:50%}
+.status.done .dot{background:var(--accent)}
+
+.hidden{display:none !important}
+.center{text-align:center}
+.right{text-align:right}
+
+.chart-wrap{display:grid;gap:16px}
+canvas{width:100%;height:auto;border:1px solid #e6efe8;border-radius:16px;background:#fff}
+
+table.list{width:100%;border-collapse:separate;border-spacing:0 8px}
+table.list th{font-size:12px;color:var(--muted);text-align:left;padding:4px 8px}
+table.list td{background:#fff;border:1px solid #e6efe8;padding:10px 8px}
+table.list tr td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+table.list tr td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+footer.app{padding:40px 16px 80px;color:var(--muted);text-align:center}
+
+@media print{
+  header.app,.stepper, .no-print, .btn, .grid-choices, .auth-only, .nav-buttons{ display:none !important }
+  main{padding:0;margin:0}
+  .card{box-shadow:none;border:1px solid #dfe9e2;margin:8px 0;border-radius:10px}
+  body{background:#fff}
+}
+
+
+/* Copy affordances for codes/PINs */
+kbd{cursor:pointer;position:relative}
+kbd[data-copied]::after{
+  content:'Copied';
+  position:absolute;top:-26px;right:0;
+  background:#e9f7ee;border:1px solid #cfe1d4;
+  padding:2px 6px;border-radius:6px;font-size:11px;color:var(--brand)
+}
+
+</style>
+<!-- Optional Firebase loader: Add your config below to enable Firestore + Anonymous Auth. If absent, app runs in local demo mode. -->
+<script type="module" id="firebase-loader">
+// Example (fill and remove the leading slashes):
+// window.FIREBASE_CONFIG = {
+//   apiKey: "YOUR_KEY",
+//   authDomain: "your-app.firebaseapp.com",
+//   projectId: "your-app",
+//   storageBucket: "your-app.appspot.com",
+//   messagingSenderId: "123",
+//   appId: "1:123:web:abc"
+// };
+</script>
+</head>
+<body>
+<header class="app" aria-label="App Header">
+  <div class="wrap">
+    <h1 class="title">LEAP — Child’s Learner Profile • <span class="small">By Finnish School &amp; Modern Learning Studio</span></h1>
+    <span class="badge" id="modeBadge" aria-live="polite" title="Storage Mode">Demo Storage</span>
+  </div>
+  <div class="stepper" role="navigation" aria-label="Progress">
+    <div class="step" id="st-auth"><span class="dot"></span><label>Auth</label></div>
+    <div class="step" id="st-child"><span class="dot"></span><label>Child</label></div>
+    <div class="step" id="st-parent"><span class="dot"></span><label>Parent</label></div>
+    <div class="step" id="st-teacher"><span class="dot"></span><label>Teacher</label></div>
+    <div class="step" id="st-report"><span class="dot"></span><label>Report</label></div>
+  </div>
+</header>
+
+<main>
+  <!-- AUTH -->
+    <!-- AUTH -->
+  <section class="card" id="authSection" aria-labelledby="authHeading">
+    <h2 id="authHeading">Sign in</h2>
+    <p class="small">How would you like to sign in? Choose a role below. The Administrator uses a passcode. Teachers and Parents use a unique login code. Teachers can gate the Child assessment with a 4‑digit PIN.</p>
+
+    <div class="card no-print">
+      <h3>How would you like to sign in?</h3>
+      <div class="grid-choices" role="group" aria-label="Choose a role">
+        <button id="btnRole_instant" class="tile role-btn" onclick="chooseRole('instant')" aria-controls="instantPane">
+          <div style="font-size:18px;font-weight:700">Instant Assessment</div>
+          <div class="small">Assess without registering to a school</div>
+        </button>
+
+        <button id="btnRole_admin" class="tile role-btn" onclick="chooseRole('admin')" aria-controls="adminPane">
+          <div style="font-size:18px;font-weight:700">Administrator</div>
+          <div class="small">Manage centers, teachers, parents, and students</div>
+        </button>
+        <button id="btnRole_teacher" class="tile role-btn" onclick="chooseRole('teacher')" aria-controls="teacherPane">
+          <div style="font-size:18px;font-weight:700">Teacher</div>
+          <div class="small">Use your Teacher Login Code</div>
+        </button>
+        <button id="btnRole_parent" class="tile role-btn" onclick="chooseRole('parent')" aria-controls="parentPane">
+          <div style="font-size:18px;font-weight:700">Parent</div>
+          <div class="small">Use your Parent Login Code</div>
+        </button>
+      </div>
+    </div>
+
+    <div id="adminPane" class="card hidden" aria-live="polite">
+      <h3>Administrator sign‑in</h3>
+      <div class="kv"><label for="adminPass">Administrator passcode</label><input id="adminPass" type="password" inputmode="numeric" placeholder="311987" aria-label="Administrator passcode"></div>
+      <div class="right"><button class="btn" onclick="authAdmin()">Enter as Administrator</button></div>
+      <p class="small">Administrators can create Centers, Teachers, Parents, and Students, and generate unique login codes and class codes.</p>
+    </div>
+
+    <div id="teacherPane" class="card hidden" aria-live="polite">
+      <h3>Teacher sign‑in</h3>
+      <div class="kv"><label for="teacherCode">Teacher Login Code</label><input id="teacherCode" type="text" placeholder="T-XXXXXX" aria-label="Teacher login code"></div>
+      <div class="right"><button class="btn" onclick="authTeacher()">Enter as Teacher</button></div>
+      <p class="small">On first use, this code binds to you and becomes inactive.</p>
+    </div>
+
+    <div id="parentPane" class="card hidden" aria-live="polite">
+      <h3>Parent sign‑in</h3>
+      <div class="kv"><label for="parentCode">Parent Login Code</label><input id="parentCode" type="text" placeholder="P-XXXXXX" aria-label="Parent login code"></div>
+      <div class="right"><button class="btn" onclick="authParent()">Enter as Parent</button></div>
+      <p class="small">On first use, this code binds to you and becomes inactive.</p>
+    </div>
+  
+
+    <div id="resumeBox" class="card hidden">
+      <h3>Welcome back</h3>
+      <p id="resumeText" class="small"></p>
+      <div class="right" style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn" id="btnResume">Continue</button>
+        <button class="btn secondary" id="btnForget">Switch account</button>
+      </div>
+    </div>
+
+    <div id="instantPane" class="card hidden" aria-live="polite">
+      <h3>Instant Assessment access</h3>
+      <div class="kv"><label for="instantCode">Instant Access Code</label><input id="instantCode" type="text" placeholder="I-XXXXXX" aria-label="Instant access code"></div>
+      <div class="right"><button class="btn" onclick="authInstant()">Enter Instant Mode</button></div>
+      <p class="small">Use a pre-created code provided by the Administrator.</p>
+    </div>
+</section>
+
+  
+  <!-- INSTANT INTAKE -->
+  <section class="card hidden" id="instantIntake">
+    <h2>Instant Assessment — Intake</h2>
+    <p class="small">No registration required. Please fill the details below for the report.</p>
+    <div class="row cols-2">
+      <div class="kv"><label for="instChildName">Student name</label><input id="instChildName" type="text" placeholder="Child's full name"></div>
+      <div class="kv"><label for="instAgeBand">Age band</label>
+        <select id="instAgeBand">
+          <option value="3-6">3–6</option>
+          <option value="6-9">6–9</option>
+          <option value="10-15">10–15</option>
+        </select>
+      </div>
+      <div class="kv"><label for="instParentPhone">Parent contact number</label><input id="instParentPhone" type="text" placeholder="+94 7X XXX XXXX"></div>
+      <div class="kv"><label for="instParentEmail">Parent email</label><input id="instParentEmail" type="email" placeholder="parent@example.com"></div>
+      <div class="kv"><label for="instSchool">School (optional)</label><input id="instSchool" type="text" placeholder="School or center"></div>
+    </div>
+    <div class="right"><button class="btn" onclick="instantStartAssessment()">Start Assessment</button></div>
+  </section>
+
+
+  <!-- ADMIN DASH -->
+  <section class="card hidden" id="adminDash">
+    <h2>Admin Dashboard</h2>
+    <div class="row cols-2">
+      <div class="card">
+        <h3>Create Center</h3>
+        <div class="kv"><label for="centerName">Center name</label><input id="centerName" type="text" placeholder="Forest School Colombo"></div>
+        <div class="right"><button class="btn" onclick="adminCreateCenter()">Add Center</button></div>
+      </div>
+      <div class="card">
+        <h3>Create Teacher</h3>
+        <div class="kv"><label for="teacherName">Teacher name</label><input id="teacherName" type="text" placeholder="Ms. Silva"></div>
+        <div class="kv"><label for="teacherCenter">Center</label><select id="teacherCenter"></select></div>
+        <div class="right"><button class="btn" onclick="adminCreateTeacher()">Add Teacher</button></div>
+      </div>
+      <div class="card">
+        <h3>Create Parent</h3>
+        <div class="kv"><label for="parentName">Parent name</label><input id="parentName" type="text" placeholder="Alex"></div>
+        <div class="kv"><label for="parentEmail">Email</label><input id="parentEmail" type="email" placeholder="alex@example.com"></div>
+        <div class="right"><button class="btn" onclick="adminCreateParent()">Add Parent</button></div>
+      </div>
+      <div class="card">
+        <h3>Create Child</h3>
+        <div class="kv"><label for="childName">Child name</label><input id="childName" type="text" placeholder="Yamina"></div>
+        <div class="kv"><label for="childAgeBand">Age band</label>
+          <select id="childAgeBand">
+            <option value="3-6">3–6</option>
+            <option value="6-9">6–9</option>
+            <option value="10-15">10–15</option>
+          </select>
+        </div>
+        <div class="kv"><label for="childCenter">Center</label><select id="childCenter"></select></div>
+        <div class="kv"><label for="childTeacher">Assign Teacher</label><select id="childTeacher"></select></div>
+        <div class="kv"><label for="childParent">Attach Parent (optional)</label><select id="childParent"></select></div>
+        <div class="right"><button class="btn" onclick="adminCreateChild()">Add Child</button></div>
+        <p class="small">Auto‑creates a 4‑digit PIN and a Parent Join Code (single‑use).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Generate Login Codes</h3>
+      <div class="row cols-3">
+        <div class="card">
+          <h4>Instant Access Code</h4>
+          <p class="small">For one-off assessments without registration.</p>
+          <div class="right"><button class="btn" onclick="adminGenerateInstantCode()">Generate I-code</button></div>
+          <div id="codeInstantResult" class="small"></div>
+        </div>
+
+        <div class="card">
+          <h4>Teacher Login Code</h4>
+          <div class="kv"><label for="codeTeacherSelect">Teacher</label><select id="codeTeacherSelect"></select></div>
+          <div class="right"><button class="btn" onclick="adminGenerateCode('teacher')">Generate T‑code</button></div>
+          <div id="codeTeacherResult" class="small"></div>
+        </div>
+        <div class="card">
+          <h4>Parent Login Code</h4>
+          <div class="kv"><label for="codeParentSelect">Parent</label><select id="codeParentSelect"></select></div>
+          <div class="right"><button class="btn" onclick="adminGenerateCode('parent')">Generate P‑code</button></div>
+          <div id="codeParentResult" class="small"></div>
+        </div>
+        <div class="card">
+          <h4>Class Join Code</h4>
+          <div class="kv"><label for="classTeacherSelect">Teacher</label><select id="classTeacherSelect"></select></div>
+          <div class="right"><button class="btn" onclick="adminGenerateClassCode()">Generate/Refresh Class Code</button></div>
+          <div id="classCodeResult" class="small"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Entities & Codes</h3>
+      <div class="row cols-2">
+        <div class="card">
+          <h4>Teachers</h4>
+          <table class="list" id="tblTeachers"></table>
+        </div>
+        <div class="card">
+          <h4>Parents</h4>
+          <table class="list" id="tblParents"></table>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Children</h4>
+        <table class="list" id="tblChildren"></table>
+      </div>
+      <div class="card">
+        <h4>Login Codes</h4>
+        <table class="list" id="tblCodes"></table>
+      </div>
+      <div class="right"><button class="btn secondary no-print" onclick="resetDemo()">Reset Demo Data</button></div>
+    </div>
+  </section>
+
+  <!-- TEACHER DASH -->
+  <section class="card hidden" id="teacherDash">
+    <h2>Teacher Dashboard</h2>
+    <div class="row cols-2">
+      <div class="card">
+        <h3>My Info</h3>
+        <div id="teacherMeta"></div>
+        <p class="small">Share your Class Join Code so parents can link their child to you.</p>
+      </div>
+      <div class="card">
+        <h3>Add Student</h3>
+        <div class="kv"><label for="tChildName">Child name</label><input id="tChildName" type="text"></div>
+        <div class="kv"><label for="tAgeBand">Age band</label>
+          <select id="tAgeBand"><option value="3-6">3–6</option><option value="6-9">6–9</option><option value="10-15">10–15</option></select>
+        </div>
+        <div class="right"><button class="btn" onclick="teacherAddChild()">Add</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>My Students</h3>
+      <table class="list" id="tblTeacherStudents"></table>
+    </div>
+  </section>
+
+  <!-- PARENT DASH -->
+  <section class="card hidden" id="parentDash">
+    <h2>Parent Dashboard</h2>
+    <div class="card">
+      <h3>My Profile</h3>
+      <div class="row cols-2">
+        <div class="kv"><label for="pName">Name</label><input id="pName" type="text"></div>
+        <div class="kv"><label for="pEmail">Email</label><input id="pEmail" type="email"></div>
+      </div>
+      <div class="right"><button class="btn" onclick="parentSaveProfile()">Save Profile</button></div>
+    </div>
+    <div class="card">
+      <h3>Link to a Class</h3>
+      <div class="kv"><label for="pClassCode">Class Join Code</label><input id="pClassCode" type="text" placeholder="C-XXXXXX"></div>
+      <div class="right"><button class="btn" onclick="parentLinkClass()">Attach My Children to Teacher</button></div>
+      <p class="small">Reusable by many parents; keeps active.</p>
+    </div>
+    <div class="card">
+      <h3>My Children</h3>
+      <div class="row cols-2">
+        <div class="card">
+          <h4>Add Child</h4>
+          <div class="kv"><label for="pChildName">Child name</label><input id="pChildName" type="text"></div>
+          <div class="kv"><label for="pAgeBand">Age band</label>
+            <select id="pAgeBand"><option value="3-6">3–6</option><option value="6-9">6–9</option><option value="10-15">10–15</option></select>
+          </div>
+          <div class="right"><button class="btn" onclick="parentAddChild()">Add</button></div>
+        </div>
+        <div class="card">
+          <h4>Link Existing (Parent Join Code)</h4>
+          <div class="kv"><label for="pJoinCode">Parent Join Code</label><input id="pJoinCode" type="text" placeholder="join-xxxxx"></div>
+          <div class="right"><button class="btn" onclick="parentUseJoinCode()">Link Child</button></div>
+        </div>
+      </div>
+      <table class="list" id="tblParentChildren"></table>
+    </div>
+  </section>
+
+  <!-- PIN GATE -->
+  <section class="card hidden" id="pinGate">
+    <h2>Enter Child PIN</h2>
+    <p class="small">This protects privacy. Ask the child to type their 4‑digit PIN to begin.</p>
+    <div class="kv"><label for="pinInput">PIN</label><input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" pattern="\d{4}" title="Enter the 4-digit PIN"></div>
+    <div class="right"><button class="btn" onclick="checkPin()">Start Assessment</button></div>
+    <div class="small" id="pinChildMeta"></div>
+  </section>
+
+  <!-- CHILD QUIZ -->
+  <section class="card hidden" id="quizSection">
+    <h2 id="quizTitle">Child Assessment</h2>
+    <div class="kv"><div>Child</div><div id="quizChildMeta"></div></div>
+    <hr class="sep">
+    <div id="quizContent"></div>
+    <div class="nav-buttons" style="display:flex;gap:8px;justify-content:space-between;margin-top:12px">
+      <button class="btn secondary" id="btnBackQ" onclick="quizBack()">Back</button>
+      <div style="display:flex;gap:8px">
+        <span class="pill" id="qProgress">1 / 30</span>
+        <button class="btn" id="btnNextQ" onclick="quizNext()">Next</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARENT FORM -->
+  <section class="card hidden" id="parentForm">
+    <h2>Parent Questionnaire</h2>
+    <p class="small">Scale: 1 = Never · 2 = Rarely · 3 = Sometimes · 4 = Often · 5 = Usually. Item 20 asks for an overall impression.</p>
+    <div id="parentQuestions"></div>
+    <div class="right" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn secondary" onclick="saveParentAnswers()">Save Parent Answers</button>
+      <button class="btn" onclick="parentNext()">Create Report / Next — Teacher</button>
+    </div>
+  </section>
+
+  <!-- TEACHER FORM -->
+  <section class="card hidden" id="teacherForm">
+    <h2>Teacher Questionnaire</h2>
+    <p class="small">Scale: 1 = Never · 2 = Rarely · 3 = Sometimes · 4 = Often · 5 = Usually. Item 20 asks for overall professional impression.</p>
+    <div id="teacherQuestions"></div>
+    <div class="right" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn secondary" onclick="saveTeacherAnswers()">Save Teacher Answers</button>
+      <button class="btn" onclick="teacherSubmit()">Create Report</button>
+    </div>
+  </section>
+
+  
+  <!-- INSTRUCTOR FORM (Instant mode optional) -->
+  <section class="card hidden" id="instructorForm">
+    <h2>Instructor Observation (Optional)</h2>
+    <p class="small">Quick 10-item snapshot based on your observations right now. Scale: 1 = Never · 5 = Usually. You can skip this step.</p>
+    <div id="instructorQuestions"></div>
+    <div class="right" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn secondary" onclick="skipInstructor()">Skip</button>
+      <button class="btn" onclick="instructorSubmit()">Create Report</button>
+    </div>
+  </section>
+
+
+  <!-- REPORT -->
+  <section class="card hidden" id="reportView">
+    <h2>Personalized Learner Profile — Report</h2>
+    <div id="reportMeta" class="row cols-2"></div>
+    <div class="chart-wrap">
+      <div class="card">
+        <h3>Final V/A/K Composition</h3>
+        <canvas id="pieChart" width="640" height="360" aria-label="Pie chart of final V/A/K"></canvas>
+      </div>
+      <div class="card">
+        <h3>Child vs Parent vs Teacher</h3>
+        <canvas id="barChart" width="640" height="360" aria-label="Bar chart of V/A/K across roles"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 id="typeHeading"></h3>
+      <div id="typeTips"></div>
+    </div>
+
+    <div class="card">
+      <h3>Science‑Backed Focus Habits</h3>
+      <ul id="scienceHabits"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Environment Checklist</h3>
+      <ul id="envChecklist"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Screen‑Time Caution</h3>
+      <p>Keep screens short and purposeful; prefer real‑world, tangible materials. Avoid passive, prolonged screen time; integrate movement and nature.</p>
+    </div>
+
+    <div class="card">
+      <h3>Model Lesson Pathway</h3>
+      <div id="lessonPathway"></div>
+    </div>
+
+    <p class="small">Disclaimer: This captures current preferences. Strategies are suggestions—not limits. Results may vary. Re‑assess in 8–12 weeks.</p>
+
+    <div class="right no-print" style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn secondary" onclick="downloadJSON()">Download JSON</button>
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </section>
+</main>
+
+<footer class="app">
+  <div>© 2025 Finnish School &amp; Modern Learning Studio • Built with Care.</div>
+</footer>
+
+<script>
+/* -------------------------------------------
+   Utilities & Storage
+--------------------------------------------*/
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+const DEMO_KEY = "leap_demo_db_v1";
+const state = {
+  role:null, admin:true,
+  teacherId:null, parentId:null, childId:null,
+  currentChild:null, // selected child object
+  quiz:{idx:0, answers:[]}, // answers: 'V'|'A'|'K'
+  parentAnswers:null, teacherAnswers:null,
+  firebaseEnabled:false,
+};
+
+function uid(prefix="id"){return prefix+"_"+Math.random().toString(36).slice(2,10)}
+function todayISO(){const d=new Date();return d.toISOString().slice(0,10)}
+function nowReadable(){
+  const d=new Date(); return d.toLocaleString();
+}
+
+// Local demo DB
+function loadDB(){
+  const raw=localStorage.getItem(DEMO_KEY);
+  if(!raw){
+    const db={centers:{}, teachers:{}, parents:{}, children:{}, loginCodes:{}};
+    localStorage.setItem(DEMO_KEY, JSON.stringify(db));
+    return db;
+  }
+  try{ return JSON.parse(raw)}catch(e){return {centers:{}, teachers:{}, parents:{}, children:{}, loginCodes:{}}}
+}
+function saveDB(db){ localStorage.setItem(DEMO_KEY, JSON.stringify(db)) }
+function getDB(){ return loadDB() }
+
+function resetDemo(){
+  if(confirm("Reset all demo data?")){ localStorage.removeItem(DEMO_KEY); location.reload() }
+}
+
+function setStep(active){
+  ["st-auth","st-child","st-parent","st-teacher","st-report"].forEach(id=>$("#"+id).classList.remove("active"));
+  if(active) $("#"+active).classList.add("active");
+}
+
+function showSection(id){
+  ["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
+  $("#"+id).classList.remove("hidden");
+}
+
+/* -------------------------------------------
+   Optional Firebase (minimal adapter; local by default)
+--------------------------------------------*/
+(async function initFirebaseIfProvided(){
+  const cfg = window.FIREBASE_CONFIG;
+  if(!cfg){
+    $("#modeBadge").textContent = "Demo Storage";
+    return; // local demo
+  }
+  try{
+    // Load Firebase modules from CDN
+    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    const authMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    const fsMod = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+    const app = appMod.initializeApp(cfg);
+    const auth = authMod.getAuth(app);
+    await authMod.signInAnonymously(auth);
+    const db = fsMod.getFirestore(app);
+
+    // Very light adapter: store a single top-level document that mirrors demo DB.
+    // (This keeps the code compact; for production, map to collections as specified.)
+    const docRef = fsMod.doc(db, "leap_singleton","demo_storage");
+    async function cloudPull(){
+      const snap = await fsMod.getDoc(docRef);
+      if(snap.exists()){
+        localStorage.setItem(DEMO_KEY, JSON.stringify(snap.data()));
+      }else{
+        await fsMod.setDoc(docRef, loadDB());
+      }
+    }
+    async function cloudPush(){
+      await fsMod.setDoc(docRef, loadDB());
+    }
+
+    // Override saveDB to also push to Firestore
+    const origSave = saveDB;
+    saveDB = function(dbObj){
+      localStorage.setItem(DEMO_KEY, JSON.stringify(dbObj));
+      cloudPush();
+    }
+    await cloudPull();
+    state.firebaseEnabled = true;
+    $("#modeBadge").textContent = "Firebase Storage";
+  }catch(err){
+    console.warn("Firebase init failed; fallback to demo.", err);
+    $("#modeBadge").textContent = "Demo Storage";
+  }
+})();
+
+/* -------------------------------------------
+   Seed selects & tables
+--------------------------------------------*/
+function optionize(list, getVal, getLabel){
+  return list.map(o=>`<option value="${getVal(o)}">${getLabel(o)}</option>`).join("");
+}
+
+function refreshAdminViews(){
+  const db=getDB();
+  // Centers
+  const centers = Object.values(db.centers);
+  $("#teacherCenter").innerHTML = optionize(centers, c=>c.id, c=>c.name);
+  $("#childCenter").innerHTML = optionize(centers, c=>c.id, c=>c.name);
+  // Teachers
+  const teachers = Object.values(db.teachers);
+  $("#childTeacher").innerHTML = `<option value="">—</option>` + optionize(teachers, t=>t.id, t=>`${t.name} (${db.centers[t.centerId]?.name||"—"})`);
+  $("#codeTeacherSelect").innerHTML = optionize(teachers, t=>t.id, t=>t.name);
+  $("#classTeacherSelect").innerHTML = optionize(teachers, t=>t.id, t=>t.name);
+  // Parents
+  const parents = Object.values(db.parents);
+  $("#childParent").innerHTML = `<option value="">—</option>` + optionize(parents, p=>p.id, p=>`${p.name||"(no name)"} ${p.email? "· "+p.email:""}`);
+  $("#codeParentSelect").innerHTML = optionize(parents, p=>p.id, p=> (p.name||"(no name)") + (p.email? " · "+p.email:""));
+
+  // Tables
+  const tRows = teachers.map(t=>{
+    const cc = t.classCode? `<kbd>${t.classCode}</kbd>` : '<span class="small">—</span>';
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td>${db.centers[t.centerId]?.name||"—"}</td>
+      <td>${(t.students||[]).length} students</td>
+      <td>Class Code: ${cc}</td>
+    </tr>`
+  }).join("");
+  $("#tblTeachers").innerHTML = `<tr><th>Name</th><th>Center</th><th>Students</th><th>Class Code</th></tr>${tRows||""}`;
+
+  const pRows = parents.map(p=>`<tr>
+    <td><strong>${p.name||"(no name)"}${p.email? " · "+p.email:""}</strong></td>
+    <td>${(p.childIds||[]).length} child(ren)</td>
+  </tr>`).join("");
+  $("#tblParents").innerHTML = `<tr><th>Parent</th><th>Linked Children</th></tr>${pRows||""}`;
+
+  const cRows = Object.values(db.children).map(ch=>{
+    const parentName = db.parents[ch.parentId||""]?.name || "—";
+    const teacherName = db.teachers[ch.teacherId||""]?.name || "—";
+    const pin = ch.pin ? `<kbd>${ch.pin}</kbd>` : "—";
+    const join = ch.parentJoinCode ? `<kbd>${ch.parentJoinCode}</kbd> ${ch.parentCodeUsed?"(used)":"(active)"}` : "—";
+    return `<tr>
+      <td><strong>${ch.name}</strong></td>
+      <td>${ch.ageBand}</td>
+      <td>${db.centers[ch.centerId||""]?.name||"—"}</td>
+      <td>${teacherName}</td>
+      <td>${parentName}</td>
+      <td>PIN ${pin}</td>
+      <td>Parent Join ${join}</td>
+    </tr>`
+  }).join("");
+  $("#tblChildren").innerHTML = `<tr><th>Name</th><th>Age</th><th>Center</th><th>Teacher</th><th>Parent</th><th>PIN</th><th>Parent Join</th></tr>${cRows||""}`;
+
+  const codeRows = Object.values(db.loginCodes).map(c=>{
+    return `<tr>
+      <td><strong>${c.code}</strong></td>
+      <td>${c.type}</td>
+      <td>${db.centers[c.centerId||""]?.name||"—"}</td>
+      <td>${c.refId? (db.teachers[c.refId]?.name || db.parents[c.refId]?.name || "—"):"—"}</td>
+      <td>${c.active?'<span class="status"><span class="dot"></span>active</span>':'<span class="status done"><span class="dot"></span>inactive</span>'}</td>
+      <td>${c.usedBy||"—"}</td>
+    </tr>`
+  }).join("");
+  $("#tblCodes").innerHTML = `<tr><th>Code</th><th>Type</th><th>Center</th><th>Bound to</th><th>Status</th><th>Used by</th></tr>${codeRows||""}`;
+}
+
+function refreshTeacherDash(){
+  const db=getDB();
+  const t = db.teachers[state.teacherId];
+  const centerName = db.centers[t.centerId]?.name || "—";
+  $("#teacherMeta").innerHTML = `
+    <div class="kv"><div>Teacher</div><div><strong>${t.name}</strong></div></div>
+    <div class="kv"><div>Center</div><div>${centerName}</div></div>
+    <div class="kv"><div>Class Code</div><div>${t.classCode? `<kbd>${t.classCode}</kbd>`:"<em class='small'>none</em>"}</div></div>
+  `;
+
+  // Students table
+  const students = Object.values(db.children).filter(ch=>ch.teacherId===t.id);
+  const rows = students.map(ch=>{
+    const parentName = db.parents[ch.parentId||""]?.name || "—";
+    const doneChild = ch.assess?.childP ? '<span class="status done"><span class="dot"></span>child</span>' : '<span class="status"><span class="dot"></span>child</span>';
+    const doneParent = ch.assess?.parentP ? '<span class="status done"><span class="dot"></span>parent</span>' : '<span class="status"><span class="dot"></span>parent</span>';
+    const doneTeacher = ch.assess?.teacherP ? '<span class="status done"><span class="dot"></span>teacher</span>' : '<span class="status"><span class="dot"></span>teacher</span>';
+    const reportAvail = ch.assess?.finalP ? "Yes" : "No";
+    return `<tr>
+      <td><strong>${ch.name}</strong> <span class="small">(${ch.ageBand})</span></td>
+      <td>Parent: ${parentName}</td>
+      <td>PIN: <kbd>${ch.pin}</kbd></td>
+      <td>Parent Join: ${ch.parentJoinCode? `<kbd>${ch.parentJoinCode}</kbd> ${ch.parentCodeUsed?"(used)":"(active)"}`:"—"}</td>
+      <td>${doneChild} ${doneParent} ${doneTeacher}</td>
+      <td>Report: ${reportAvail}</td>
+      <td>
+        <button class="btn secondary" onclick="startPinGate('${ch.id}')">Start Assessment</button>
+        <button class="btn" onclick="viewReport('${ch.id}')">View Report</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("#tblTeacherStudents").innerHTML = `<tr><th>Student</th><th>Parent</th><th>PIN</th><th>Parent Join</th><th>Status</th><th>Report</th><th>Actions</th></tr>${rows||""}`;
+}
+
+function refreshParentDash(){
+  const db=getDB();
+  const p = db.parents[state.parentId];
+  $("#pName").value = p.name||"";
+  $("#pEmail").value = p.email||"";
+  const rows = (p.childIds||[]).map(cid=>{
+    const ch = db.children[cid];
+    const tName = db.teachers[ch.teacherId||""]?.name || "—";
+    const cDone = ch.assess?.childP? "✅":"—";
+    const pDone = ch.assess?.parentP? "✅":"—";
+    const tDone = ch.assess?.teacherP? "✅":"—";
+    const reportAvail = ch.assess?.finalP? "✅":"—";
+    return `<tr>
+      <td><strong>${ch.name}</strong> <span class="small">(${ch.ageBand})</span></td>
+      <td>Teacher: ${tName}</td>
+      <td>PIN: <kbd>${ch.pin}</kbd></td>
+      <td>Child: ${cDone} | Parent: ${pDone} | Teacher: ${tDone}</td>
+      <td>Report: ${reportAvail}</td>
+      <td>
+        <button class="btn secondary" onclick="openParentForm('${ch.id}')">Parent Form</button>
+        <button class="btn" onclick="viewReport('${ch.id}')">View Report</button>
+      </td>
+    </tr>`
+  }).join("");
+  $("#tblParentChildren").innerHTML = `<tr><th>Child</th><th>Teacher</th><th>PIN</th><th>Status</th><th>Actions</th></tr>${rows||""}`;
+}
+
+/* -------------------------------------------
+   Code Generators
+--------------------------------------------*/
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,1,0
+function randCode(n=6){
+  let s=""; for(let i=0;i<n;i++){ s += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)] } return s;
+}
+function makeLoginCode(kind){ // 'teacher'|'parent'|'class'|'instant'
+  const body = randCode(6);
+  if(kind==='teacher') return "T-"+body;
+  if(kind==='parent') return "P-"+body;
+  if(kind==='class') return "C-"+body;
+  if(kind==='instant') return "I-"+body;
+  return body;
+}
+function makePin(){ return String(Math.floor(1000+Math.random()*9000)) }
+function makeParentJoin(){ return "join-"+Math.random().toString(36).slice(2,7) }
+
+/* -------------------------------------------
+   Auth
+--------------------------------------------*/
+function chooseRole(role){
+  ['admin','teacher','parent','instant'].forEach(r=>{
+    const pane = document.getElementById(r+'Pane');
+    if(pane) pane.classList.add('hidden');
+    const btn = document.getElementById('btnRole_'+r);
+    if(btn) btn.classList.remove('selected');
+  });
+  const target = document.getElementById(role+'Pane');
+  if(target) target.classList.remove('hidden');
+  const selBtn = document.getElementById('btnRole_'+role);
+  if(selBtn) selBtn.classList.add('selected');
+  // Move focus into the selected pane for accessibility
+  setTimeout(()=>{
+    if(role==='admin'){ const el=document.getElementById('adminPass'); if(el) el.focus(); }
+    if(role==='teacher'){ const el=document.getElementById('teacherCode'); if(el) el.focus(); }
+    if(role==='parent'){ const el=document.getElementById('parentCode'); if(el) el.focus(); }
+  }, 0);
+}
+
+function authAdmin(){
+  const pass=$("#adminPass").value.trim();
+  if(pass !== "311987"){ alert("Invalid admin passcode"); return }
+  state.role="admin"; setStep("st-auth"); showSection("adminDash"); refreshAdminViews();
+}
+function authTeacher(){
+  const code=$("#teacherCode").value.trim().toUpperCase();
+  if(!code.startsWith("T-")){ alert("Enter a Teacher Login Code like T-XXXXXX"); return }
+  const db=getDB();
+  const found = Object.values(db.loginCodes).find(c=>c.code===code && c.type==='teacher');
+  if(!found){ alert("Code not found."); return }
+  if(!found.active && !found.refId){ alert("Code is inactive."); return }
+  let teacherId = found.refId;
+  if(!teacherId){
+    // Bind to a brand new teacher if not pre-bound (rare path)
+    const id = uid("teacher");
+    db.teachers[id]={id,name:"(New Teacher)",centerId:Object.values(db.centers)[0]?.id||"",students:[],classCode:null};
+    found.refId = id;
+    teacherId=id;
+  }
+  found.active=false; found.usedBy="teacher";
+  saveDB(db);
+  state.role="teacher"; state.teacherId = found.refId; localStorage.setItem("LEAP_lastRole","teacher"); localStorage.setItem("LEAP_teacherId", state.teacherId);
+  setStep("st-child"); showSection("teacherDash"); refreshTeacherDash();
+}
+function authParent(){
+  const code=$("#parentCode").value.trim().toUpperCase();
+  if(!code.startsWith("P-")){ alert("Enter a Parent Login Code like P-XXXXXX"); return }
+  const db=getDB();
+  const found = Object.values(db.loginCodes).find(c=>c.code===code && c.type==='parent');
+  if(!found){ alert("Code not found."); return }
+  let parentId = found.refId;
+  if(!parentId){
+    // Create parent on first use
+    const id = uid("parent");
+    db.parents[id]={id,name:"",email:"",childIds:[]};
+    found.refId=id;
+    parentId=id;
+  }
+  found.active=false; found.usedBy="parent";
+  saveDB(db);
+  state.role="parent"; state.parentId = found.refId; localStorage.setItem("LEAP_lastRole","parent"); localStorage.setItem("LEAP_parentId", state.parentId);
+  setStep("st-parent"); showSection("parentDash"); refreshParentDash();
+}
+
+/* -------------------------------------------
+   Admin create & code management
+--------------------------------------------*/
+function adminCreateCenter(){
+  const name=$("#centerName").value.trim();
+  if(!name) return alert("Enter a center name");
+  const db=getDB(); const id=uid("center");
+  db.centers[id]={id,name}; saveDB(db); $("#centerName").value=""; refreshAdminViews();
+}
+function adminCreateTeacher(){
+  const name=$("#teacherName").value.trim(); const centerId=$("#teacherCenter").value;
+  if(!name||!centerId) return alert("Enter name and select center");
+  const db=getDB(); const id=uid("teacher");
+  db.teachers[id]={id,name,centerId,students:[],classCode:null};
+  saveDB(db); $("#teacherName").value=""; refreshAdminViews();
+}
+function adminCreateParent(){
+  const name=$("#parentName").value.trim(); const email=$("#parentEmail").value.trim();
+  if(!name) return alert("Enter parent name");
+  const db=getDB(); const id=uid("parent");
+  db.parents[id]={id,name,email,childIds:[]}; saveDB(db);
+  $("#parentName").value=""; $("#parentEmail").value=""; refreshAdminViews();
+}
+function adminCreateChild(){
+  const name=$("#childName").value.trim(); const ageBand=$("#childAgeBand").value;
+  const centerId=$("#childCenter").value; const teacherId=$("#childTeacher").value||null; const parentId=$("#childParent").value||null;
+  if(!name||!ageBand) return alert("Enter child name and age band");
+  const db=getDB(); const id=uid("child");
+  const pin=makePin(); const parentJoinCode=makeParentJoin();
+  db.children[id]={id,name,ageBand,centerId,parentId,teacherId,pin,parentJoinCode,parentCodeUsed:false,assess:{}};
+  if(teacherId){ db.teachers[teacherId].students = Array.from(new Set([...(db.teachers[teacherId].students||[]), id])); }
+  if(parentId){ db.parents[parentId].childIds = Array.from(new Set([...(db.parents[parentId].childIds||[]), id])); }
+  saveDB(db);
+  $("#childName").value=""; refreshAdminViews();
+}
+function adminGenerateCode(kind){
+  const db=getDB();
+  if(kind==='teacher'){
+    const tid=$("#codeTeacherSelect").value; if(!tid) return alert("Select a teacher");
+    const code = makeLoginCode('teacher');
+    const id=uid("code");
+    db.loginCodes[id]={id,code,type:'teacher',refId:tid,centerId:db.teachers[tid].centerId,active:true,usedBy:null};
+    saveDB(db); $("#codeTeacherResult").textContent = "Created: "+code; refreshAdminViews(); return;
+  }
+  if(kind==='parent'){
+    const pid=$("#codeParentSelect").value; if(!pid) return alert("Select a parent");
+    const code = makeLoginCode('parent');
+    const id=uid("code");
+    db.loginCodes[id]={id,code,type:'parent',refId:pid,centerId:null,active:true,usedBy:null};
+    saveDB(db); $("#codeParentResult").textContent = "Created: "+code; refreshAdminViews(); return;
+  }
+}
+function adminGenerateClassCode(){
+  const db=getDB(); const tid=$("#classTeacherSelect").value; if(!tid) return alert("Select a teacher");
+  const code = makeLoginCode('class');
+  db.teachers[tid].classCode = code;
+  const id=uid("code");
+  db.loginCodes[id]={id,code,type:'class',refId:tid,centerId:db.teachers[tid].centerId,active:true,usedBy:null};
+  saveDB(db); $("#classCodeResult").textContent="Class Code: "+code; refreshAdminViews();
+}
+
+function adminGenerateInstantCode(){
+  const db = getDB();
+  const code = makeLoginCode('instant');
+  const id = uid("code");
+  db.loginCodes[id] = {id, code, type:'instant', refId:null, centerId:null, active:true, usedBy:null};
+  saveDB(db);
+  const el = document.getElementById("codeInstantResult");
+  if(el) el.textContent = "Created: " + code;
+  refreshAdminViews();
+}
+
+
+/* -------------------------------------------
+   Teacher
+--------------------------------------------*/
+function teacherAddChild(){
+  const name = $("#tChildName").value.trim();
+  const ageBand = $("#tAgeBand").value;
+  if(!name) return alert("Enter child name");
+  const db = getDB();
+  const t = db.teachers[state.teacherId];
+  const id = uid("child");
+  const pin = makePin();
+  const parentJoinCode = makeParentJoin();
+  db.children[id] = { id, name, ageBand, centerId: (t&&t.centerId)||null, parentId: null, teacherId: state.teacherId, pin, parentJoinCode, parentCodeUsed:false, assess:{} };
+  t.students = Array.from(new Set([...(t.students||[]), id]));
+  saveDB(db);
+  $("#tChildName").value = "";
+  refreshTeacherDash();
+}
+
+function startPinGate(childId){
+  const db=getDB(); const ch=db.children[childId];
+  state.childId=childId; state.currentChild=ch; state.quiz={idx:0,answers:[]};
+  $("#pinChildMeta").innerHTML=`<div class="kv"><div>Child</div><div><strong>${ch.name}</strong> · Age ${ch.ageBand} · PIN <kbd>${ch.pin}</kbd></div></div>`;
+  showSection("pinGate"); setStep("st-child");
+}
+function checkPin(){
+  const pin=$("#pinInput").value.trim();
+  const ch=state.currentChild;
+  if(!ch) return;
+  if(pin !== ch.pin) return alert("Incorrect PIN");
+  $("#pinInput").value="";
+  startQuiz();
+}
+
+function startQuiz(){
+  const ch=state.currentChild;
+  $("#quizChildMeta").textContent = `${ch.name} · Age ${ch.ageBand} · PIN ${ch.pin}`;
+  state.quiz = {idx:0, answers: Array(30).fill(null)};
+  renderQuizQ();
+  showSection("quizSection"); setStep("st-child");
+}
+
+function quizBack(){
+  if(state.quiz.idx>0){ state.quiz.idx--; renderQuizQ(); }
+}
+function quizNext(){
+  // Require selection
+  if(!state.quiz.answers[state.quiz.idx]){ alert("Choose an option to continue"); return }
+  if(state.quiz.idx<29){ state.quiz.idx++; renderQuizQ(); }
+  else { // finished
+    saveChildAnswers();
+    openParentForm(state.childId);
+  }
+}
+
+function renderQuizQ(){
+  const ch=state.currentChild;
+  const bank = (ch.ageBand==="3-6"? CHILD_3_6 : ch.ageBand==="6-9"? CHILD_6_9 : CHILD_10_15);
+  const i = state.quiz.idx;
+  const q = bank[i];
+  $("#qProgress").textContent = (i+1)+" / 30";
+  $("#btnBackQ").disabled = i===0;
+  $("#btnNextQ").textContent = i===29 ? "Finish" : "Next";
+  $("#quizContent").innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div class="pill">Question ${i+1}</div>
+        <div class="pill">Age ${ch.ageBand}</div>
+      </div>
+      <h3 style="margin:8px 0 0">${q.q}</h3>
+      <div class="grid-choices" role="group" aria-label="Choices">
+        ${["V","A","K"].map((mode,idx)=>{
+          const isSel = state.quiz.answers[i]===mode;
+          const label = q.opts[idx];
+          const cls = "tile "+(isSel?"selected":"");
+          const color = mode==="V"?"var(--vcol)":mode==="A"?"var(--acol)":"var(--kcol)";
+          return `<button class="${cls}" onclick="selectAnswer(${i},'${mode}')">
+            <span style="font-size:20px;color:${color}">${mode}</span>
+            <div>${label}</div>
+          </button>`
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+function selectAnswer(i,mode){
+  state.quiz.answers[i]=mode;
+  setTimeout(()=>{
+    if(state.quiz.idx < 29){
+      state.quiz.idx++; 
+      renderQuizQ();
+    }else{
+      saveChildAnswers();
+      // After child section, go to Parent form automatically
+      openParentForm(state.childId);
+    }
+  }, 120);
+}
+
+function saveChildAnswers(){
+  const db=getDB(); const ch=db.children[state.childId];
+  const c = countVAK(state.quiz.answers);
+  const childP = toPerc(c.V, c.A, c.K);
+  ch.assess = ch.assess || {};
+  ch.assess.childP = childP;
+  ch.assess.date = todayISO();
+  saveDB(db);
+}
+
+/* -------------------------------------------
+   Parent & Teacher Forms
+--------------------------------------------*/
+function likertRow(idx, text){
+  return `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div class="pill">Item ${idx+1}</div>
+      <div class="small">1 Never · 5 Usually</div>
+    </div>
+    <div style="margin:6px 0 10px 0;font-weight:600">${text}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${[1,2,3,4,5].map(v=>`<label class="pill"><input type="radio" name="lk_${idx}" value="${v}" onchange="onLikert('${idx}',${v})"> ${v}</label>`).join("")}
+    </div>
+  </div>`;
+}
+function finalPickRow(idx, text){
+  return `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+      <div class="pill">Item ${idx+1} — Final pick</div>
+    </div>
+    <div style="margin:6px 0 10px 0;font-weight:600">${text}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${["V","A","K"].map(m=>`<label class="pill"><input type="radio" name="fp_${idx}" value="${m}" onchange="onFinalPick('${idx}','${m}')"> ${m}</label>`).join("")}
+    </div>
+  </div>`;
+}
+
+function openParentForm(childId){
+  const db=getDB(); const ch=db.children[childId];
+  state.childId = childId; state.currentChild=ch;
+  // Build parent questionnaire
+  const parts = PARENT_Q.map((item,i)=> item.finalPick? finalPickRow(i, item.text) : likertRow(i, item.text));
+  $("#parentQuestions").innerHTML = parts.join("");
+  setStep("st-parent"); showSection("parentForm");
+}
+function onLikert(idx,val){
+  state.parentAnswers = state.parentAnswers || {};
+  state.parentAnswers[idx] = Number(val);
+}
+function onFinalPick(idx,mode){
+  state.parentAnswers = state.parentAnswers || {};
+  state.parentAnswers["fp_"+idx] = mode;
+}
+function saveParentAnswers(){
+  const db=getDB(); const ch=db.children[state.childId];
+  const result = scoreLikert(state.parentAnswers, PARENT_Q);
+  ch.assess = ch.assess || {};
+  ch.assess.parentP = result;
+  saveDB(db);
+  alert("Parent answers saved.");
+}
+function parentNext(){
+  const db=getDB(); const ch=db.children[state.childId];
+  if(state.role==="teacher"){
+    openTeacherForm(state.childId);
+  }else if(state.role==="instant"){
+    openInstructorForm(state.childId);
+  }else{
+    if(!ch.assess?.childP){ alert("Child section must be completed. Returning to dashboard."); showSection("parentDash"); refreshParentDash(); return }
+    buildReport(state.childId); showSection("reportView"); setStep("st-report");
+  }
+}
+
+function openTeacherForm(childId){
+  const parts = TEACHER_Q.map((item,i)=> item.finalPick? finalPickRow(i, item.text) : likertRow(i, item.text));
+  $("#teacherQuestions").innerHTML = parts.join("");
+  setStep("st-teacher"); showSection("teacherForm");
+}
+function saveTeacherAnswers(){
+  const db=getDB(); const ch=db.children[state.childId];
+  const result = scoreLikert(state.teacherAnswers, TEACHER_Q);
+  ch.assess = ch.assess || {};
+  ch.assess.teacherP = result;
+  saveDB(db);
+  alert("Teacher answers saved.");
+}
+function teacherSubmit(){
+  const db=getDB(); const ch=db.children[state.childId];
+  if(!ch.assess?.childP){ alert("Child section must be completed first."); showSection("teacherDash"); return }
+  // Save teacher (if any)
+  if(state.teacherAnswers){ saveTeacherAnswers() }
+  buildReport(state.childId); showSection("reportView"); setStep("st-report");
+}
+
+function onLikertTeacher(idx,val){
+  state.teacherAnswers = state.teacherAnswers || {};
+  state.teacherAnswers[idx] = Number(val);
+}
+function onFinalPickTeacher(idx,mode){
+  state.teacherAnswers = state.teacherAnswers || {};
+  state.teacherAnswers["fp_"+idx] = mode;
+}
+// Wire teacher form handlers via delegated functions used in HTML rows:
+window.onLikert = function(idx,val){
+  // Determine context by current section
+  if(!$("#parentForm").classList.contains("hidden")){
+    onLikertParent(idx,val);
+  }else{
+    onLikertTeacher(idx,val);
+  }
+}
+window.onFinalPick = function(idx,mode){
+  if(!$("#parentForm").classList.contains("hidden")){
+    onFinalPickParent(idx,mode);
+  }else if(!$("#instructorForm").classList.contains("hidden")){
+    onFinalPickInstructor(idx,mode);
+  }else{
+    onFinalPickTeacher(idx,mode);
+  }
+}
+function onLikertParent(idx,val){
+  state.parentAnswers = state.parentAnswers || {};
+  state.parentAnswers[idx] = Number(val);
+}
+function onFinalPickParent(idx,mode){
+  state.parentAnswers = state.parentAnswers || {};
+  state.parentAnswers["fp_"+idx] = mode;
+}
+
+/* -------------------------------------------
+   Scoring & Classification
+--------------------------------------------*/
+function countVAK(modes){
+  const out={V:0,A:0,K:0};
+  modes.forEach(m=>{ if(m==='V') out.V++; else if(m==='A') out.A++; else if(m==='K') out.K++; });
+  return out;
+}
+function toPerc(V,A,K){
+  const total=V+A+K; if(total===0) return [0,0,0];
+  return [Math.round(V*100/total), Math.round(A*100/total), Math.round(K*100/total)];
+}
+function scoreLikert(answerBag, items){
+  if(!answerBag) return null;
+  let V=0,A=0,K=0;
+  for(let i=0;i<items.length;i++){
+    const it=items[i];
+    if(it.finalPick){
+      const fp = answerBag["fp_"+i];
+      if(fp==="V") V+=4; else if(fp==="A") A+=4; else if(fp==="K") K+=4;
+    }else if(it.map && ["V","A","K"].includes(it.map)){
+      const val = answerBag[i]||0;
+      if(it.map==="V") V+=val;
+      if(it.map==="A") A+=val;
+      if(it.map==="K") K+=val;
+    }
+  }
+  return toPerc(V,A,K);
+}
+function classify(finalP){
+  const [v,a,k]=finalP;
+  const arr=[{m:"Visual",p:v},{m:"Auditory",p:a},{m:"Kinesthetic",p:k}].sort((x,y)=>y.p-x.p);
+  const top=arr[0], second=arr[1], third=arr[2];
+  if(top.p>=40 && (top.p - second.p)>=8) return top.m;
+  if((top.p>=35 && second.p>=35 && (top.p-second.p)<8) ||
+     (Math.abs(v-a)<=8 && Math.abs(a-k)<=8)) return "Multisensory";
+  return top.m;
+}
+function weighCombine(childP, parentP, teacherP){
+  let wChild=60, wParent=20, wTeacher=20;
+  let parts=0; if(childP) parts++; if(parentP) parts++; if(teacherP) parts++;
+  if(parts===0) return [0,0,0];
+  if(parts===1){ wChild = childP?100:0; wParent=parentP?100:0; wTeacher=teacherP?100:0; }
+  if(parts===2){
+    if(!childP){ wParent=50; wTeacher=50 }
+    else if(!parentP){ wChild=75; wTeacher=25 }
+    else if(!teacherP){ wChild=75; wParent=25 }
+  }
+  const V = (childP? childP[0]*wChild:0) + (parentP? parentP[0]*wParent:0) + (teacherP? teacherP[0]*wTeacher:0);
+  const A = (childP? childP[1]*wChild:0) + (parentP? parentP[1]*wParent:0) + (teacherP? teacherP[1]*wTeacher:0);
+  const K = (childP? childP[2]*wChild:0) + (parentP? parentP[2]*wParent:0) + (teacherP? teacherP[2]*wTeacher:0);
+  const total = (childP? wChild:0) + (parentP? wParent:0) + (teacherP? wTeacher:0);
+  return [Math.round(V/total), Math.round(A/total), Math.round(K/total)];
+}
+
+/* -------------------------------------------
+   Report builder & Charts
+--------------------------------------------*/
+function buildReport(childId){
+  const db=getDB(); const ch=db.children[childId];
+  const childP = ch.assess?.childP || null;
+  const parentP = ch.assess?.parentP || null;
+  const teacherP = ch.assess?.teacherP || null;
+  const finalP = weighCombine(childP, parentP, teacherP);
+  const type = classify(finalP);
+  ch.assess.finalP = finalP; ch.assess.type=type; ch.assess.date= todayISO(); saveDB(db);
+
+  // Meta
+  $("#reportMeta").innerHTML = `
+    <div class="card">
+      <div class="kv"><div>Child</div><div><strong>${ch.name}</strong></div></div>
+      <div class="kv"><div>Age band</div><div>${ch.ageBand}</div></div>
+      <div class="kv"><div>Center</div><div>${db.centers[ch.centerId||""]?.name||"—"}</div></div>
+      <div class="kv"><div>Date</div><div>${todayISO()} <span class="small">(${nowReadable()})</span></div></div>
+    </div>
+    <div class="card">
+      <div class="kv"><div>Child %</div><div>${childP? childP.join(" / ") : "—"}</div></div>
+      <div class="kv"><div>Parent %</div><div>${parentP? parentP.join(" / ") : "—"}</div></div>
+      <div class="kv"><div>Teacher %</div><div>${teacherP? teacherP.join(" / ") : "—"}</div></div>
+      <hr class="sep">
+      <div class="kv"><div>Final % (V/A/K)</div><div><strong>${finalP.join(" / ")}</strong></div></div>
+      <div class="kv"><div>Type</div><div><strong>${type}</strong></div></div>
+    </div>
+  `;
+
+  // Charts
+  drawPie("pieChart", finalP);
+  drawBars("barChart", childP, parentP, teacherP);
+
+  // Tips section
+  $("#typeHeading").textContent = `${type} — Practical Strategies`;
+  const tips = TYPE_TIPS[type] || [];
+  $("#typeTips").innerHTML = `<ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>`;
+
+  // Habits & environment
+  $("#scienceHabits").innerHTML = SCIENCE_HABITS.map(t=>`<li>${t}</li>`).join("");
+  $("#envChecklist").innerHTML = ENV_CHECKLIST.map(t=>`<li>${t}</li>`).join("");
+
+  // Lesson pathway
+  $("#lessonPathway").innerHTML = `<p>${LESSON_PATH[type]||""}</p>`;
+}
+
+function downloadJSON(){
+  const db=getDB(); const ch=db.children[state.childId];
+  const data={ child: ch.name, ageBand: ch.ageBand, centerId: ch.centerId, assess: ch.assess };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=url; a.download=`LEAP_${ch.name}_${todayISO()}.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
+/* Charts (no external libs) */
+function drawPie(canvasId, vals){
+  const c = document.getElementById(canvasId);
+  const ctx=c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  const colors = ["#15803d","#65a30d","#0ea5a4"];
+  const labels = ["Visual","Auditory","Kinesthetic"];
+  const total = vals.reduce((a,b)=>a+b,0)||1;
+  const cx=c.width/2, cy=c.height/2, r=Math.min(cx,cy)-20;
+  let start= -Math.PI/2;
+  vals.forEach((v,i)=>{
+    const ang = (v/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+ang);
+    ctx.closePath(); ctx.fillStyle=colors[i]; ctx.fill();
+    start += ang;
+  });
+  // Legend
+  ctx.font="16px system-ui"; ctx.textBaseline="top";
+  labels.forEach((lb,i)=>{
+    ctx.fillStyle=colors[i]; ctx.fillRect(16,16+i*24,18,18);
+    ctx.fillStyle="#0a1d12"; ctx.fillText(`${lb} ${vals[i]}%`, 42, 14+i*24);
+  });
+}
+
+function drawBars(canvasId, childP, parentP, teacherP){
+  const c=document.getElementById(canvasId), ctx=c.getContext("2d");
+  ctx.clearRect(0,0,c.width,c.height);
+  const labels=["Visual","Auditory","Kinesthetic"];
+  const series=[childP||[0,0,0], parentP||[0,0,0], teacherP||[0,0,0]];
+  const colors=["#166534","#22c55e","#059669"];
+  const W=c.width, H=c.height, pad=40, baseY=H-40;
+  const max=100;
+  const groupW = (W - pad*2)/labels.length;
+  const barW = Math.min(28, (groupW-20)/series.length);
+
+  ctx.font="14px system-ui"; ctx.textAlign="center";
+  // Y axis grid
+  ctx.strokeStyle="#e6efe8"; ctx.beginPath();
+  for(let y=0;y<=max;y+=20){
+    const yy = baseY - (y/max)*(H- pad*2);
+    ctx.moveTo(pad,yy); ctx.lineTo(W-pad,yy);
+    ctx.fillStyle="#5b6b61"; ctx.fillText(y.toString(), pad-18, yy-6);
+  }
+  ctx.stroke();
+  // Bars
+  labels.forEach((lb,li)=>{
+    const gx = pad + li*groupW + groupW/2;
+    ctx.fillStyle="#0a1d12"; ctx.fillText(lb, gx, baseY+10);
+    series.forEach((arr,si)=>{
+      const val = arr[li]||0;
+      const h = (val/max)*(H - pad*2);
+      const x = gx - (series.length*barW + (series.length-1)*8)/2 + si*(barW+8);
+      const y = baseY - h;
+      ctx.fillStyle=colors[si]; ctx.fillRect(x,y,barW,h);
+      ctx.fillStyle="#0a1d12"; ctx.fillText(val+"%", x+barW/2, y-14);
+    });
+  });
+  // Legend
+  const legend=[["Child",colors[0]],["Parent",colors[1]],["Teacher",colors[2]]];
+  legend.forEach((it,i)=>{
+    ctx.fillStyle=it[1]; ctx.fillRect(W-180, 16+i*24, 16,16);
+    ctx.fillStyle="#0a1d12"; ctx.textAlign="left"; ctx.fillText(it[0], W-160, 14+i*24);
+  });
+}
+
+/* -------------------------------------------
+   Parent actions
+--------------------------------------------*/
+function parentSaveProfile(){
+  const db=getDB(); const p=db.parents[state.parentId];
+  p.name=$("#pName").value.trim(); p.email=$("#pEmail").value.trim();
+  saveDB(db); alert("Saved.");
+}
+function parentLinkClass(){
+  const code=$("#pClassCode").value.trim().toUpperCase();
+  const db=getDB();
+  const c = Object.values(db.loginCodes).find(x=>x.code===code && x.type==='class');
+  if(!c){ alert("Invalid class code"); return }
+  const tId = c.refId; if(!tId){ alert("Class code not bound to a teacher"); return }
+  const p=db.parents[state.parentId];
+  (p.childIds||[]).forEach(cid=>{ db.children[cid].teacherId=tId; db.children[cid].centerId = db.teachers[tId].centerId; db.teachers[tId].students = Array.from(new Set([...(db.teachers[tId].students||[]), cid])); });
+  saveDB(db); refreshParentDash(); alert("Linked your children to the class.");
+}
+function parentAddChild(){
+  const name=$("#pChildName").value.trim(); const ageBand=$("#pAgeBand").value;
+  if(!name) return alert("Enter child name");
+  const db=getDB(); const p=db.parents[state.parentId];
+  const id=uid("child"); const pin=makePin(); const parentJoinCode=makeParentJoin();
+  db.children[id]={id,name,ageBand,centerId:null,parentId:p.id,teacherId:null,pin,parentJoinCode,parentCodeUsed:true,assess:{}};
+  p.childIds = Array.from(new Set([...(p.childIds||[]), id]));
+  saveDB(db); $("#pChildName").value=""; refreshParentDash();
+}
+function parentUseJoinCode(){
+  const code=$("#pJoinCode").value.trim();
+  const db=getDB();
+  const child = Object.values(db.children).find(ch=>ch.parentJoinCode===code);
+  if(!child){ alert("Invalid code"); return }
+  if(child.parentCodeUsed){ alert("Code already used"); return }
+  const p=db.parents[state.parentId];
+  child.parentId = p.id; child.parentCodeUsed = true;
+  p.childIds = Array.from(new Set([...(p.childIds||[]), child.id]));
+  saveDB(db); refreshParentDash(); alert("Child linked.");
+}
+function openParentFormFromDash(childId){
+  openParentForm(childId);
+}
+
+
+function authInstant(){
+  const code = $("#instantCode").value.trim().toUpperCase();
+  if(!code.startsWith("I-")){ alert("Enter an Instant Access Code like I-XXXXXX"); return }
+  const db=getDB();
+  const found = Object.values(db.loginCodes).find(c=>c.code===code && c.type==='instant');
+  if(!found){ alert("Code not found."); return }
+  state.role='instant';
+  setStep('st-child');
+  showSection('instantIntake');
+}
+
+function instantStartAssessment(){
+  const name = $("#instChildName").value.trim();
+  const ageBand = $("#instAgeBand").value;
+  const phone = $("#instParentPhone").value.trim();
+  const email = $("#instParentEmail").value.trim();
+  const school = $("#instSchool").value.trim();
+  if(!name){ alert("Enter student name"); return }
+  const db=getDB();
+  const id = uid("child");
+  db.children[id] = { id, name, ageBand, centerId:null, parentId:null, teacherId:null, pin:makePin(), parentJoinCode:null, parentCodeUsed:false,
+    instant:true, intake:{ phone, email, school }, assess:{} };
+  saveDB(db);
+  state.childId = id; state.currentChild = db.children[id];
+  startQuiz();
+}
+
+function openInstructorForm(childId){
+  const parts = INSTRUCTOR_Q.map((item,i)=> item.finalPick? finalPickRow(i, item.text) : likertRow(i, item.text));
+  $("#instructorQuestions").innerHTML = parts.join("");
+  showSection("instructorForm"); setStep("st-teacher");
+}
+function skipInstructor(){
+  buildReport(state.childId); showSection("reportView"); setStep("st-report");
+}
+function instructorSubmit(){
+  const db=getDB(); const ch=db.children[state.childId];
+  const result = scoreLikert(state.instructorAnswers, INSTRUCTOR_Q);
+  ch.assess = ch.assess || {};
+  ch.assess.teacherP = result;
+  saveDB(db);
+  buildReport(state.childId); showSection("reportView"); setStep("st-report");
+}
+function onLikertInstructor(idx,val){
+  state.instructorAnswers = state.instructorAnswers || {};
+  state.instructorAnswers[idx] = Number(val);
+}
+function onFinalPickInstructor(idx,mode){
+  state.instructorAnswers = state.instructorAnswers || {};
+  state.instructorAnswers["fp_"+idx] = mode;
+}
+
+
+/* -------------------------------------------
+   Report content (tips, habits, environment, lessons)
+--------------------------------------------*/
+const TYPE_TIPS = {
+  "Visual": [
+    "Use picture cards, diagrams, and color‑coded notes.",
+    "Start with a visual demo before practice.",
+    "Encourage real‑world observation and sketching.",
+    "Create mini posters or checklists for steps.",
+    "Use storyboards to plan writing and projects.",
+    "Label spaces with photo‑labels.",
+    "Use maps, timelines, and charts for context.",
+    "Apply the ‘Look‑Think‑Do’ routine.",
+    "Keep screens short and purposeful; prefer visuals made by the child.",
+    "End sessions with a quick drawing of the main idea."
+  ],
+  "Auditory": [
+    "Use read‑alouds, songs, and chants.",
+    "Ask the child to explain‑back in their own words.",
+    "Add rhythm or beats to multi‑step routines.",
+    "Use sound effects for key ideas.",
+    "Try call‑and‑response to reinforce concepts.",
+    "Include short audio‑only focus moments.",
+    "Use voice notes for ideas and reminders.",
+    "Add partner talk and micro‑discussions.",
+    "Keep passive screen time limited; focus on purposeful listening.",
+    "Build listening stamina with gradually longer segments."
+  ],
+  "Kinesthetic": [
+    "Try a quick demo, then ‘you do’ right away.",
+    "Use manipulatives and real objects.",
+    "Plan movement breaks every 8–10 minutes.",
+    "Play floor‑based math and spelling games.",
+    "Use role‑play to explore stories and history.",
+    "Run build‑test cycles in projects.",
+    "Provide sensory trays and hands‑on exploration.",
+    "Create ‘procedure dances’ for sequences.",
+    "Limit passive screens; favor making and doing.",
+    "Keep a hands‑on journal (photos + captions)."
+  ],
+  "Multisensory": [
+    "Blend see/hear/do in lessons.",
+    "Offer choice in how to show learning.",
+    "Set up stations by mode (visual, talk, hands‑on).",
+    "Run a weekly nature or maker project.",
+    "Keep screens minimal and purposeful.",
+    "Teach how to choose a strategy for the task.",
+    "Build a personal toolbox of learning aides.",
+    "Practice switching modes intentionally.",
+    "Do a daily reflection on what worked.",
+    "Track wins across different modes."
+  ]
+};
+
+const SCIENCE_HABITS = [
+  "Study bursts: 20–25 minutes focus + 5 minute movement/water break.",
+  "Self‑check: close the book, say or draw the main idea from memory.",
+  "Nature reset: 15–20 minutes outside supports attention and mood.",
+  "Hydration: keep water within reach; sip between tasks.",
+  "Eye comfort: match screen brightness to room light; use the 20‑20‑20 rule.",
+  "Sound: quiet or gentle instrumentals for reading; turn noise off for deep focus.",
+  "Sleep: protect bedtime; sleep consolidates learning and memory."
+];
+
+const ENV_CHECKLIST = [
+  "Correct chair/desk fit; feet flat and back supported.",
+  "Even room light; avoid harsh contrast and glare.",
+  "Screen at eye height and about arm’s length away.",
+  "Water available and a timer for focus/breaks.",
+  "Phone and notifications off during study."
+];
+
+const LESSON_PATH = {
+  "Visual": "Demo → Diagram/notes → Guided practice → Mini‑poster or checklist to summarize learning.",
+  "Auditory": "Read‑aloud or short talk → Explain‑back in pairs → Guided practice with rhythm/cues → Short verbal reflection.",
+  "Kinesthetic": "Quick demo → Try it → Build/test → Movement‑based recap of steps.",
+  "Multisensory": "Brief overview (visual + spoken) → Choose a mode to explore → Switch mode to consolidate → Create a small product."
+};
+
+/* -------------------------------------------
+   Question Banks (EXACT text, left→right maps to V/A/K)
+--------------------------------------------*/
+const CHILD_3_6 = [
+{q:"When someone reads me a story, I like to…",opts:["look at the pictures 👀","listen to the voice 👂","act it out with my body ✋"]},
+{q:"When I learn a new song, I like to…",opts:["watch the actions 👀","listen carefully 👂","dance or clap ✋"]},
+{q:"When I try a new game, I like to…",opts:["see how it’s played first 👀","hear the rules 👂","try it right away ✋"]},
+{q:"When I count, I like to…",opts:["look at number cards 👀","say numbers out loud 👂","count things with my hands ✋"]},
+{q:"When I am in nature, I like to…",opts:["spot shapes and colors 👀","listen to birds and wind 👂","touch leaves and rocks ✋"]},
+{q:"When I build, I like to…",opts:["follow a picture 👀","have someone tell me how 👂","try and fix as I go ✋"]},
+{q:"When I learn a new word, I like to…",opts:["see the word card 👀","hear the word 👂","act the meaning ✋"]},
+{q:"When I draw, I like to…",opts:["copy from a picture 👀","draw while someone describes 👂","make shapes with objects ✋"]},
+{q:"When I do a chore, I like to…",opts:["have a picture list 👀","have a spoken list 👂","watch once then do it ✋"]},
+{q:"When I do puzzles, I like to…",opts:["look for picture matches 👀","ask for hints 👂","try pieces by moving them ✋"]},
+{q:"When I remember, I like to…",opts:["look at a photo 👀","repeat words 👂","do the action ✋"]},
+{q:"When I learn letters, I like to…",opts:["trace on paper 👀","say the sounds 👂","trace in sand ✋"]},
+{q:"When I learn shapes, I like to…",opts:["see posters 👀","listen to shape songs 👂","build shapes ✋"]},
+{q:"When I enjoy stories, I like…",opts:["picture books 👀","audio stories 👂","dress‑up play ✋"]},
+{q:"When the teacher shows something, I like to…",opts:["watch their hands 👀","listen to the words 👂","join with actions ✋"]},
+{q:"When I visit a new place, I like to…",opts:["see a map or photo 👀","hear directions 👂","walk and explore ✋"]},
+{q:"When I get stuck, I like to…",opts:["look again 👀","ask someone to explain 👂","keep trying ✋"]},
+{q:"When I learn about animals, I like to…",opts:["study pictures 👀","learn sounds 👂","pretend to be them ✋"]},
+{q:"When I think about time, I like to…",opts:["check a chart 👀","listen for cues 👂","follow routines ✋"]},
+{q:"When I learn colors, I like to…",opts:["use color cards 👀","sing color songs 👂","mix paints ✋"]},
+{q:"When I learn safe rules, I like to…",opts:["watch a demo 👀","listen to the rules 👂","practice with help ✋"]},
+{q:"When I learn about feelings, I like to…",opts:["look at faces 👀","talk about them 👂","role‑play ✋"]},
+{q:"When I do science, I like to…",opts:["see pictures and diagrams 👀","hear the steps 👂","try the experiment ✋"]},
+{q:"When I help cook, I like to…",opts:["follow pictures 👀","listen to steps 👂","mix and pour ✋"]},
+{q:"When I play memory games, I like to…",opts:["match cards 👀","repeat words 👂","copy actions ✋"]},
+{q:"For more stories, I like…",opts:["more pictures 👀","more voices 👂","more acting ✋"]},
+{q:"When I learn friends’ names, I like to…",opts:["read name tags 👀","say names 👂","link names to games ✋"]},
+{q:"When I learn about weather, I like to…",opts:["check a chart 👀","listen to a report 👂","feel outside ✋"]},
+{q:"When I do sport, I like to…",opts:["watch first 👀","listen to the coach 👂","jump in and try ✋"]},
+{q:"When it’s clean‑up time, I like to…",opts:["follow a picture plan 👀","listen to steps 👂","copy an adult ✋"]},
+];
+
+const CHILD_6_9 = [
+{q:"When I’m starting a new game, I like to…",opts:["see a quick demo 👀","hear the rules 👂","try it myself ✋"]},
+{q:"When I’m spelling a new word, I like to…",opts:["look and copy it 👀","sound it out 👂","write it in the air ✋"]},
+{q:"When I need to remember facts, I like to…",opts:["use charts or diagrams 👀","say them out loud 👂","act them out ✋"]},
+{q:"In math, I learn best when I…",opts:["see worked examples 👀","hear the teacher explain 👂","handle blocks or objects ✋"]},
+{q:"For science steps, I like to…",opts:["see a picture sequence 👀","listen to the steps 👂","do the experiment ✋"]},
+{q:"When I’m finding a place, I like to…",opts:["follow a map 👀","follow spoken directions 👂","walk the route ✋"]},
+{q:"When I learn new words, I like to…",opts:["use flashcards 👀","listen and repeat 👂","gesture or role‑play ✋"]},
+{q:"For group work, I like to…",opts:["see a plan on paper 👀","talk through the plan 👂","build a model of the plan ✋"]},
+{q:"With stories, I like to…",opts:["look at illustrations 👀","listen to an audiobook 👂","act the scenes ✋"]},
+{q:"When I get instructions, I like to…",opts:["read or view the steps 👀","hear the steps 👂","try and learn by doing ✋"]},
+{q:"Before a test, I like to…",opts:["study with guides/notes 👀","study by saying things aloud 👂","practice hands‑on ✋"]},
+{q:"For memory tricks, I like to…",opts:["make a mind‑map 👀","make a rhyme 👂","use movements ✋"]},
+{q:"When I start a new idea, I like to…",opts:["sketch it 👀","talk it out 👂","model it with clay/blocks ✋"]},
+{q:"For history, I like to…",opts:["see timelines and maps 👀","hear stories told 👂","re‑enact events ✋"]},
+{q:"For grammar, I like to…",opts:["color‑code parts 👀","talk about the rules 👂","build sentences with cards ✋"]},
+{q:"In nature study, I like to…",opts:["use a field guide 👀","identify sounds 👂","collect and sort objects ✋"]},
+{q:"For projects, I like to…",opts:["make a poster plan 👀","give a quick verbal pitch 👂","build a prototype ✋"]},
+{q:"In sports, I like to…",opts:["watch drills first 👀","listen to the coach 👂","repeat the movements ✋"]},
+{q:"In art, I like to…",opts:["copy examples or make a mood board 👀","work from a verbal prompt 👂","experiment with materials ✋"]},
+{q:"For coding or logic, I like to…",opts:["see flowcharts 👀","hear walkthroughs 👂","solve hands‑on puzzles ✋"]},
+{q:"For music, I like to…",opts:["follow visual patterns/sheet 👀","listen and imitate 👂","play the instrument ✋"]},
+{q:"For a new language, I like to…",opts:["use a word wall 👀","listen‑and‑repeat 👂","act the meanings ✋"]},
+{q:"At clean‑up time, I like to…",opts:["use visual zones 👀","follow spoken roles 👂","move items to places ✋"]},
+{q:"When I plan my week, I like to…",opts:["use a calendar 👀","talk through the schedule 👂","lay out materials ✋"]},
+{q:"When I name my feelings, I like to…",opts:["use a feelings chart 👀","share with someone 👂","do a calming movement ✋"]},
+{q:"When I solve a problem, I like to…",opts:["draw it 👀","discuss it 👂","try it ✋"]},
+{q:"For geography, I like to…",opts:["study maps 👀","say place names aloud 👂","model landforms ✋"]},
+{q:"For fractions, I like to…",opts:["see pie‑shaped visuals 👀","hear fraction stories 👂","cut fruit or shapes ✋"]},
+{q:"When I choose how to study, I like to…",opts:["highlight and organize notes 👀","study with a buddy and talk 👂","build or handle models ✋"]},
+{q:"When I reflect on my day, I like to…",opts:["draw or make a picture journal 👀","record a voice journal 👂","make an experience journal ✋"]},
+];
+
+const CHILD_10_15 = [
+{q:"When I start a new topic, I prefer to…",opts:["look at a diagram or overview 👀","hear a short explanation 👂","jump in and try it ✋"]},
+{q:"When I take notes, I prefer to…",opts:["sketch boxes/arrows 👀","write linear notes 👂","doodle and connect with gestures ✋"]},
+{q:"To memorize, I prefer to…",opts:["use flashcards 👀","record and replay audio 👂","walk/use gestures ✋"]},
+{q:"For difficult math, I prefer to…",opts:["study worked examples 👀","talk through reasoning 👂","handle manipulatives ✋"]},
+{q:"In science, I prefer to…",opts:["read graphs/models 👀","listen to a quick talk 👂","do the lab ✋"]},
+{q:"For languages, I prefer to…",opts:["make word webs 👀","do listening drills 👂","role‑play conversations ✋"]},
+{q:"In history, I prefer to…",opts:["study timelines/maps 👀","hear narratives 👂","visit exhibits/fieldwork ✋"]},
+{q:"In literature, I prefer to…",opts:["annotate the text 👀","join a discussion 👂","stage a scene ✋"]},
+{q:"For projects, I prefer to…",opts:["set up a visual plan/board 👀","do quick stand‑up talks 👂","prototype early ✋"]},
+{q:"In study groups, I prefer to…",opts:["use a whiteboard 👀","explain aloud 👂","build models ✋"]},
+{q:"For revision, I prefer to…",opts:["make mind‑maps 👀","teach a friend 👂","do hands‑on quizzes ✋"]},
+{q:"In STEM/coding, I prefer to…",opts:["start with flowcharts 👀","follow a walkthrough 👂","tinker with code ✋"]},
+{q:"For self‑management, I prefer to…",opts:["use a visual schedule 👀","set alarms/reminders 👂","organize tools/space ✋"]},
+{q:"In sports, I prefer to…",opts:["watch analysis/video 👀","listen to coach brief 👂","run drills ✋"]},
+{q:"In art/design, I prefer to…",opts:["build a mood board 👀","get critique talks 👂","trial materials ✋"]},
+{q:"For presentations, I prefer to…",opts:["make slides/infographics 👀","practice the script 👂","use props/live demo ✋"]},
+{q:"When problem‑solving, I prefer to…",opts:["draw the problem 👀","think aloud 👂","simulate it ✋"]},
+{q:"For memory hacks, I prefer to…",opts:["color‑code 👀","use mnemonics/audio 👂","attach movements ✋"]},
+{q:"When reading data, I prefer to…",opts:["study charts 👀","explain trends verbally 👂","collect my own data ✋"]},
+{q:"For lab safety, I prefer to…",opts:["read posters 👀","listen to a briefing 👂","walk the space ✋"]},
+{q:"In geography, I prefer to…",opts:["use layered maps 👀","listen to documentaries 👂","model landscapes ✋"]},
+{q:"When planning exams, I prefer to…",opts:["set a visual plan 👀","talk with a coach 👂","do practice tasks ✋"]},
+{q:"For reflection, I prefer to…",opts:["bullet journal 👀","voice log 👂","re‑organize my space ✋"]},
+{q:"When fixing mistakes, I prefer to…",opts:["mark up errors 👀","talk through what happened 👂","redo it physically ✋"]},
+{q:"For inspiration, I prefer to…",opts:["look at a gallery/lookbook 👀","listen to podcasts 👂","join a workshop ✋"]},
+{q:"For stress relief, I prefer to…",opts:["visual breathing guides 👀","calm audio 👂","movement breaks ✋"]},
+{q:"For goals, I prefer to…",opts:["make a vision board 👀","use affirmations/audio 👂","set a habit loop ✋"]},
+{q:"For feedback, I prefer to…",opts:["get written notes 👀","get verbal feedback 👂","watch a hands‑on demo ✋"]},
+{q:"During free study, I prefer to…",opts:["watch a how‑to 👀","listen to a talk 👂","make something ✋"]},
+{q:"When I choose my own path, I prefer to…",opts:["look, plan, and then do 👀","listen, discuss, and then do 👂","do first and learn by trying ✋"]},
+];
+
+const PARENT_Q = [
+{text:"Pictures help my child understand.", map:"V"},
+{text:"Hearing a short explanation helps my child understand.", map:"A"},
+{text:"Doing or trying it helps my child understand.", map:"K"},
+{text:"A visual schedule or checklist helps my child get things done.", map:"V"},
+{text:"My child remembers well after listening to me or an audiobook.", map:"A"},
+{text:"My child remembers well after hands‑on practice.", map:"K"},
+{text:"During story time, my child focuses on the pictures.", map:"V"},
+{text:"During story time, my child focuses on the voices and sounds.", map:"A"},
+{text:"During story time, my child prefers to act it out or use props.", map:"K"},
+{text:"Maps, labels, or diagrams help my child follow routes.", map:"V"},
+{text:"Spoken directions are enough for my child to follow a task.", map:"A"},
+{text:"Watching a quick demo is enough for my child to do the task.", map:"K"},
+{text:"Color‑coding, drawing, or mind‑maps help my child learn.", map:"V"},
+{text:"Talking about learning helps my child understand and remember.", map:"A"},
+{text:"Building, moving, or making helps my child learn.", map:"K"},
+{text:"Our screen time is limited and used for a clear purpose.", map:"-"},
+{text:"When bored, my child chooses books, pictures, or drawing.", map:"V"},
+{text:"When bored, my child chooses music, stories, or podcasts.", map:"A"},
+{text:"When bored, my child chooses crafts, building, or active play.", map:"K"},
+{text:"When learning something hard, my child first tends to… choose V/A/K.", finalPick:true},
+];
+
+const TEACHER_Q = [
+{text:"Needs visual examples to start tasks.", map:"V"},
+{text:"Responds well to brief spoken explanations.", map:"A"},
+{text:"Learns best when using manipulatives or experiments.", map:"K"},
+{text:"Uses visual organizers (charts, diagrams) effectively.", map:"V"},
+{text:"Participates in discussion to deepen understanding.", map:"A"},
+{text:"On‑task movement (standing, fidgets) supports focus.", map:"K"},
+{text:"Retains new ideas after viewing models or diagrams.", map:"V"},
+{text:"Retains new ideas after listening to teacher or peers.", map:"A"},
+{text:"Retains new ideas after hands‑on practice.", map:"K"},
+{text:"Follows written/visual instructions independently.", map:"V"},
+{text:"Follows spoken instructions independently.", map:"A"},
+{text:"Follows modeled steps after a quick demo.", map:"K"},
+{text:"Independent with note‑taking (mind‑maps, color‑coding).", map:"V"},
+{text:"Independent with verbal rehearsal or peer explanation.", map:"A"},
+{text:"Independent setting up materials or trying first.", map:"K"},
+{text:"Benefits from reduced passive screen time in class.", map:"-"},
+{text:"Collaborates better with visual task boards.", map:"V"},
+{text:"Collaborates better after stand‑up talks/check‑ins.", map:"A"},
+{text:"Collaborates better with role‑based, hands‑on jobs.", map:"K"},
+{text:"Overall professional impression: choose V/A/K.", finalPick:true},
+];
+
+
+const INSTRUCTOR_Q = [
+  {text:"During this session the child responded best to visual models or examples.", map:"V"},
+  {text:"Brief spoken prompts were enough to get the child started.", map:"A"},
+  {text:"Hands-on materials or movement led to the clearest progress.", map:"K"},
+  {text:"When confused, the child sought diagrams or written cues.", map:"V"},
+  {text:"When confused, the child asked for a quick explanation or repeat.", map:"A"},
+  {text:"When confused, the child preferred to try again physically.", map:"K"},
+  {text:"For remembering steps, visual checklists helped most.", map:"V"},
+  {text:"For remembering steps, verbal rehearsal helped most.", map:"A"},
+  {text:"For remembering steps, doing the steps helped most.", map:"K"},
+  {text:"Overall impression right now: choose V/A/K.", finalPick:true}
+];
+
+
+/* -------------------------------------------
+   Report navigation & helpers
+--------------------------------------------*/
+function viewReport(childId){
+  const db=getDB(); const ch=db.children[childId];
+  if(!ch.assess?.childP){ return alert("No child assessment yet.") }
+  state.childId = childId; state.currentChild=ch;
+  buildReport(childId); showSection("reportView"); setStep("st-report");
+}
+
+/* -------------------------------------------
+   Startup
+--------------------------------------------*/
+
+// Click-to-copy for any <kbd> element
+document.addEventListener("click", (e)=>{
+  const tgt = e.target;
+  if(tgt && tgt.tagName === "KBD"){
+    const txt = tgt.textContent.trim();
+    try{ if(navigator.clipboard){ navigator.clipboard.writeText(txt); } }catch(e){}
+    tgt.setAttribute("data-copied","1");
+    setTimeout(()=>tgt.removeAttribute("data-copied"), 900);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  $("#yearNow").textContent = (new Date()).getFullYear();
+  setStep("st-auth"); showSection("authSection");
+
+  // Show resume card if a Teacher/Parent session exists
+  const lastRole = localStorage.getItem("LEAP_lastRole");
+  const lastTeacher = localStorage.getItem("LEAP_teacherId");
+  const lastParent = localStorage.getItem("LEAP_parentId");
+  if(lastRole){
+    const who = lastRole==='teacher' ? 'Teacher' : lastRole==='parent' ? 'Parent' : null;
+    if(who){
+      const db=getDB();
+      const name = lastRole==='teacher' ? (db.teachers[lastTeacher]?.name||'(Teacher)')
+                 : lastRole==='parent' ? (db.parents[lastParent]?.name||'(Parent)')
+                 : '';
+      const rbox = document.getElementById("resumeBox");
+      const txt = document.getElementById("resumeText");
+      if(rbox && txt){
+        txt.textContent = `Continue as ${who} ${name}?`;
+        rbox.classList.remove("hidden");
+        const btnResume = document.getElementById("btnResume");
+        const btnForget = document.getElementById("btnForget");
+        if(btnResume){
+          btnResume.onclick = ()=>{
+            if(lastRole==='teacher'){ state.role='teacher'; state.teacherId=lastTeacher; setStep('st-child'); showSection('teacherDash'); refreshTeacherDash(); }
+            if(lastRole==='parent'){ state.role='parent'; state.parentId=lastParent; setStep('st-parent'); showSection('parentDash'); refreshParentDash(); }
+          };
+        }
+        if(btnForget){
+          btnForget.onclick = ()=>{
+            localStorage.removeItem("LEAP_lastRole");
+            localStorage.removeItem("LEAP_teacherId");
+            localStorage.removeItem("LEAP_parentId");
+            rbox.classList.add("hidden");
+          };
+        }
+      }
+    }
+  }
+
+});
+</script>
+</body>
+</html>
