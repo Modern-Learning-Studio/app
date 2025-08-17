@@ -100,8 +100,8 @@ kbd[data-copied]::after{
 </style>
 <!-- Optional Firebase loader: Add your config below to enable Firestore + Anonymous Auth. If absent, app runs in local demo mode. -->
 <script type="module" id="firebase-loader">
-  // Firebase config for LEAP (Realtime Database + Anonymous Auth)
-  const firebaseConfig = {
+  // Firebase loader (Realtime DB + Anonymous Auth) with Admin overrides
+  const defaultConfig = {
     apiKey: "AIzaSyCXXcN3uBSWRLFTlUibBnO4b6CfVXblwm0",
     authDomain: "leap-c8235.firebaseapp.com",
     databaseURL: "https://leap-c8235-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -114,29 +114,39 @@ kbd[data-copied]::after{
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  const app = initializeApp(firebaseConfig);
-  try { getAnalytics(app); } catch(e) { /* ignore when not supported */ }
+  // Read Admin overrides BEFORE init
+  let __settings = {};
+  try { __settings = JSON.parse(localStorage.getItem("LEAP_SETTINGS") || "{}"); } catch(e){ __settings = {}; }
+  const firebaseConfig = { ...defaultConfig, ...( __settings.databaseURL ? { databaseURL: __settings.databaseURL } : {} ) };
+  const PATH = (__settings && __settings.path) ? __settings.path : "leap/storage";
 
+  // Init
+  const app = initializeApp(firebaseConfig);
+  try { getAnalytics(app); } catch(e){}
+
+  // Anonymous Auth
   const auth = getAuth(app);
   await signInAnonymously(auth);
 
+  // Realtime DB
   const rtdb = getDatabase(app);
-  const PATH = "leap/storage";
 
-  // Expose helpers for the app
+  // Helpers
   window.LEAP_LOAD = async () => {
     const snap = await get(ref(rtdb, PATH));
     return snap.exists() ? snap.val() : null;
   };
   window.LEAP_SAVE = async (data) => {
-    try { await set(ref(rtdb, PATH), data); } catch(e){ console.error("RTDB save failed:", e); }
+    await set(ref(rtdb, PATH), data);
   };
+  window._LEAP_SIGNOUT = () => signOut(auth).catch(()=>{});
 
-  // Update mode badge
-  try { const b = document.getElementById("modeBadge"); if (b) b.textContent = "Firebase: Realtime DB"; } catch(e){}
+  // Badge
+  try{ const mb=document.getElementById('modeBadge'); if(mb) mb.textContent="Firebase: Realtime DB"; }catch(e){}
+        
 </script>
 </head>
 <body>
@@ -289,11 +299,36 @@ kbd[data-copied]::after{
       <div class="row cols-3">
         <div class="card">
           <h4>Admin Settings</h4>
-          <p class="small">Manual Firebase sync controls.</p>
+          <p class="small">Manual sync and endpoint configuration. Choose Firebase (Realtime DB) or Webhook.</p>
           <div class="row cols-2" style="gap:8px">
-            <button class="btn" onclick="adminSyncNow()">Upload local → Firebase</button>
+            <div class="kv">
+              <label for="syncMode">Sync mode</label>
+              <select id="syncMode">
+                <option value="firebase">Firebase (Realtime Database)</option>
+                <option value="webhook">Webhook (HTTP POST)</option>
+              </select>
+            </div>
+            <div class="kv">
+              <label for="fbPath">Firebase path</label>
+              <input id="fbPath" type="text" placeholder="leap/storage">
+            </div>
+            <div class="kv">
+              <label for="fbUrl">Firebase databaseURL (override)</label>
+              <input id="fbUrl" type="text" placeholder="https://...firebasedatabase.app">
+            </div>
+            <div class="kv">
+              <label for="hookUrl">Webhook URL</label>
+              <input id="hookUrl" type="url" placeholder="https://example.com/endpoint">
+            </div>
+          </div>
+          <div class="row cols-3" style="gap:8px">
+            <button class="btn" onclick="adminSettingsSave()">Save Settings</button>
+            <button class="btn" onclick="adminSyncNow()">Upload local → Cloud</button>
             <button class="btn secondary" onclick="adminPullFromCloud()">Pull Firebase → local</button>
           </div>
+          <div id="adminSyncStatus" class="small" style="margin-top:6px;color:var(--muted)">Status: Ready</div>
+          <p class="small" style="margin-top:6px">Note: Changing the Firebase database URL requires a page reload to take effect.</p>
+        </div>
           <div id="adminSyncStatus" class="small" style="margin-top:6px;color:var(--muted)">Status: Ready</div>
         </div>
 
@@ -568,8 +603,7 @@ function setStep(active){
   if(active) $("#"+active).classList.add("active");
 }
 
-function showSection(id){
-  ["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
+function showSection(id){["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","instructorForm","instantIntake","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
   $("#"+id).classList.remove("hidden");
 
   const lo = document.getElementById('btnLogout');
@@ -600,7 +634,7 @@ function logout(){
     if(btn) btn.classList.remove('selected');
   });
   setStep('st-auth');
-  showSection('authSection');
+  showSection('authSection'); try{ _LEAP_SIGNOUT(); }catch(e){}
   // Clear any sign-in inputs
   const ids = ['adminPass','teacherCode','parentCode','instantCode'];
   ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.value='' } });
@@ -619,40 +653,57 @@ function optionize(list, getVal, getLabel){
   return list.map(o=>`<option value="${getVal(o)}">${getLabel(o)}</option>`).join("");
 }
 
+
 function refreshAdminViews(){
   const db=getDB();
   // Centers
   const centers = Object.values(db.centers);
-  $("#teacherCenter").innerHTML = optionize(centers, c=>c.id, c=>c.name);
-  $("#childCenter").innerHTML = optionize(centers, c=>c.id, c=>c.name);
-  // Teachers
   const teachers = Object.values(db.teachers);
-  $("#childTeacher").innerHTML = `<option value="">—</option>` + optionize(teachers, t=>t.id, t=>`${t.name} (${db.centers[t.centerId]?.name||"—"})`);
-  $("#codeTeacherSelect").innerHTML = optionize(teachers, t=>t.id, t=>t.name);
-  $("#classTeacherSelect").innerHTML = optionize(teachers, t=>t.id, t=>t.name);
-  // Parents
   const parents = Object.values(db.parents);
-  $("#childParent").innerHTML = `<option value="">—</option>` + optionize(parents, p=>p.id, p=>`${p.name||"(no name)"} ${p.email? "· "+p.email:""}`);
-  $("#codeParentSelect").innerHTML = optionize(parents, p=>p.id, p=> (p.name||"(no name)") + (p.email? " · "+p.email:""));
 
-  // Tables
+  const opt = (arr, getVal, getLabel) => arr.map(o=>`<option value="${getVal(o)}">${getLabel(o)}</option>`).join("");
+
+  const teacherCenter = document.getElementById("teacherCenter");
+  const childCenter = document.getElementById("childCenter");
+  if(teacherCenter) teacherCenter.innerHTML = opt(centers, c=>c.id, c=>c.name);
+  if(childCenter) childCenter.innerHTML = opt(centers, c=>c.id, c=>c.name);
+
+  const childTeacher = document.getElementById("childTeacher");
+  if(childTeacher) childTeacher.innerHTML = `<option value="">—</option>` + opt(teachers, t=>t.id, t=>`${t.name} (${db.centers[t.centerId]?.name||"—"})`);
+
+  const codeTeacherSelect = document.getElementById("codeTeacherSelect");
+  const classTeacherSelect = document.getElementById("classTeacherSelect");
+  if(codeTeacherSelect) codeTeacherSelect.innerHTML = opt(teachers, t=>t.id, t=>t.name);
+  if(classTeacherSelect) classTeacherSelect.innerHTML = opt(teachers, t=>t.id, t=>t.name);
+
+  const childParent = document.getElementById("childParent");
+  if(childParent) childParent.innerHTML = `<option value="">—</option>` + opt(parents, p=>p.id, p=>`${p.name||"(no name)"}${p.email? " · "+p.email:""}`);
+
+  const codeParentSelect = document.getElementById("codeParentSelect");
+  if(codeParentSelect) codeParentSelect.innerHTML = opt(parents, p=>p.id, p=>(p.name||"(no name)") + (p.email? " · "+p.email:""));
+
+  // Teachers table
   const tRows = teachers.map(t=>{
     const cc = t.classCode? `<kbd>${t.classCode}</kbd>` : '<span class="small">—</span>';
     return `<tr>
       <td><strong>${t.name}</strong></td>
-      <td>${db.centers[t.centerId]?.name||"—"}</td>
+      <td>${db.centers[t.centerId||""]?.name||"—"}</td>
       <td>${(t.students||[]).length} students</td>
       <td>Class Code: ${cc}</td>
-    </tr>`
+    </tr>`;
   }).join("");
-  $("#tblTeachers").innerHTML = `<tr><th>Name</th><th>Center</th><th>Students</th><th>Class Code</th></tr>${tRows||""}`;
+  const tblTeachers = document.getElementById("tblTeachers");
+  if(tblTeachers) tblTeachers.innerHTML = `<tr><th>Name</th><th>Center</th><th>Students</th><th>Class Code</th></tr>${tRows||""}`;
 
+  // Parents table
   const pRows = parents.map(p=>`<tr>
     <td><strong>${p.name||"(no name)"}${p.email? " · "+p.email:""}</strong></td>
     <td>${(p.childIds||[]).length} child(ren)</td>
   </tr>`).join("");
-  $("#tblParents").innerHTML = `<tr><th>Parent</th><th>Linked Children</th></tr>${pRows||""}`;
+  const tblParents = document.getElementById("tblParents");
+  if(tblParents) tblParents.innerHTML = `<tr><th>Parent</th><th>Linked Children</th></tr>${pRows||""}`;
 
+  // Children table
   const cRows = Object.values(db.children).map(ch=>{
     const parentName = db.parents[ch.parentId||""]?.name || "—";
     const teacherName = db.teachers[ch.teacherId||""]?.name || "—";
@@ -666,10 +717,12 @@ function refreshAdminViews(){
       <td>${parentName}</td>
       <td>PIN ${pin}</td>
       <td>Parent Join ${join}</td>
-    </tr>`
+    </tr>`;
   }).join("");
-  $("#tblChildren").innerHTML = `<tr><th>Name</th><th>Age</th><th>Center</th><th>Teacher</th><th>Parent</th><th>PIN</th><th>Parent Join</th></tr>${cRows||""}`;
+  const tblChildren = document.getElementById("tblChildren");
+  if(tblChildren) tblChildren.innerHTML = `<tr><th>Name</th><th>Age</th><th>Center</th><th>Teacher</th><th>Parent</th><th>PIN</th><th>Parent Join</th></tr>${cRows||""}`;
 
+  // Codes table
   const codeRows = Object.values(db.loginCodes).map(c=>{
     return `<tr>
       <td><strong>${c.code}</strong></td>
@@ -678,9 +731,13 @@ function refreshAdminViews(){
       <td>${c.refId? (db.teachers[c.refId]?.name || db.parents[c.refId]?.name || "—"):"—"}</td>
       <td>${c.active?'<span class="status"><span class="dot"></span>active</span>':'<span class="status done"><span class="dot"></span>inactive</span>'}</td>
       <td>${c.usedBy||"—"}</td>
-    </tr>`
+    </tr>`;
   }).join("");
-  $("#tblCodes").innerHTML = `<tr><th>Code</th><th>Type</th><th>Center</th><th>Bound to</th><th>Status</th><th>Used by</th></tr>${codeRows||""}`;
+  const tblCodes = document.getElementById("tblCodes");
+  if(tblCodes) tblCodes.innerHTML = `<tr><th>Code</th><th>Type</th><th>Center</th><th>Bound to</th><th>Status</th><th>Used by</th></tr>${codeRows||""}`;
+
+  // Prefill settings safely
+  try{ _prefillAdminSettings(); }catch(e){}
 }
 
 function refreshTeacherDash(){
@@ -781,6 +838,8 @@ function chooseRole(role){
     if(role==='admin'){ const el=document.getElementById('adminPass'); if(el) el.focus(); }
     if(role==='teacher'){ const el=document.getElementById('teacherCode'); if(el) el.focus(); }
     if(role==='parent'){ const el=document.getElementById('parentCode'); if(el) el.focus(); }
+    if(role==='instant'){ const el=document.getElementById('instantCode'); if(el) el.focus(); }
+    if(role==='instant'){ const el=document.getElementById('instantCode'); if(el) el.focus(); }
   }, 0);
 }
 
@@ -904,16 +963,25 @@ function teacherAddChild(){
 
 
 
+}
+
 function adminSyncNow(){
   const status = document.getElementById('adminSyncStatus');
-  if(!window.LEAP_SAVE){
-    if(status) status.textContent = "Status: Firebase loader not detected. Check the firebase-loader script/config.";
-    alert("Firebase is not connected. Please verify your firebase-loader block.");
-    return;
-  }
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem("LEAP_SETTINGS")||"{}"); } catch(e){}
+  const mode = s.syncMode || 'firebase';
+
   try{
     const db = getDB();
     status && (status.textContent = "Status: Uploading…");
+    if(mode === 'webhook'){
+      if(!s.webhookUrl){ status && (status.textContent="Status: Webhook URL missing"); alert("Webhook URL is not set."); return; }
+      fetch(s.webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ts: Date.now(), source:'LEAP', data: db }) })
+        .then(()=>{ status && (status.textContent = "Status: Uploaded to Webhook ✔"); alert("Local data sent to webhook."); })
+        .catch(err=>{ console.error(err); status && (status.textContent = "Status: Upload failed"); alert("Webhook upload failed."); });
+      return;
+    }
+    if(!window.LEAP_SAVE){ if(status) status.textContent = "Status: Firebase loader not detected."; alert("Firebase is not connected."); return; }
     Promise.resolve(window.LEAP_SAVE(db)).then(()=>{
       status && (status.textContent = "Status: Uploaded to Firebase ✔");
       alert("Local data uploaded to Firebase.");
@@ -939,7 +1007,7 @@ function adminPullFromCloud(){
   status && (status.textContent = "Status: Pulling…");
   Promise.resolve(window.LEAP_LOAD()).then(remote=>{
     if(remote && typeof remote === 'object'){
-      try{ localStorage.setItem("LEAP_DB", JSON.stringify(remote)); }catch(e){}
+      try{ localStorage.setItem(DEMO_KEY, JSON.stringify(remote)); }catch(e){}
       status && (status.textContent = "Status: Pulled from Firebase ✔ (local refreshed)");
       // Soft refresh dash if logged in
       const role = state.role;
@@ -957,6 +1025,32 @@ function adminPullFromCloud(){
     alert("Pull failed. See console for details.");
   });
 }
+function adminSettingsSave(){
+  const mode = (document.getElementById('syncMode')||{}).value || 'firebase';
+  const path = (document.getElementById('fbPath')||{}).value || 'leap/storage';
+  const dburl = (document.getElementById('fbUrl')||{}).value || '';
+  const hook = (document.getElementById('hookUrl')||{}).value || '';
+  const s = { syncMode: mode, path: path, databaseURL: dburl, webhookUrl: hook };
+  try { localStorage.setItem("LEAP_SETTINGS", JSON.stringify(s)); } catch(e){}
+  const status = document.getElementById('adminSyncStatus');
+  if(status) status.textContent = "Status: Saved settings" + (dburl ? " (reload to apply DB URL)" : "");
+  alert("Settings saved." + (dburl ? "\nReload the page to apply the databaseURL." : ""));
+}
+
+// Prefill the Admin Settings form on dash render
+function _prefillAdminSettings(){
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem("LEAP_SETTINGS")||"{}"); } catch(e){}
+  const syncMode = document.getElementById('syncMode');
+  const fbPath = document.getElementById('fbPath');
+  const fbUrl = document.getElementById('fbUrl');
+  const hookUrl = document.getElementById('hookUrl');
+  if(syncMode) syncMode.value = s.syncMode || 'firebase';
+  if(fbPath) fbPath.value = s.path || 'leap/storage';
+  if(fbUrl) fbUrl.value = s.databaseURL || '';
+  if(hookUrl) hookUrl.value = s.webhookUrl || '';
+}
+
 
 function adminGenerateInstantCode(){
   const db=getDB();
@@ -968,7 +1062,6 @@ function adminGenerateInstantCode(){
   refreshAdminViews();
 }
 
-}
 function startPinGate(childId){
   const db=getDB(); const ch=db.children[childId];
   state.childId=childId; state.currentChild=ch; state.quiz={idx:0,answers:[]};
@@ -1035,17 +1128,20 @@ function renderQuizQ(){
     </div>
   `;
 }
-function selectAnswer(i,mode){
-  state.quiz.answers[i]=mode;
+function selectAnswer(i, mode){
+  state.quiz.answers[i] = mode;
+  renderQuizQ();
   setTimeout(()=>{
     if(state.quiz.idx < 29){
-      state.quiz.idx++; renderQuizQ();
+      state.quiz.idx++; 
+      renderQuizQ();
     }else{
       saveChildAnswers();
       openParentForm(state.childId);
     }
-  }, 120);
+  }, 150);
 }
+
 function saveChildAnswers(){
   const db=getDB(); const ch=db.children[state.childId];
   const c = countVAK(state.quiz.answers);
@@ -1148,32 +1244,25 @@ function onFinalPickTeacher(idx,mode){
   state.teacherAnswers = state.teacherAnswers || {};
   state.teacherAnswers["fp_"+idx] = mode;
 }
-// Wire teacher form handlers via delegated functions used in HTML rows:
+// // Unified Likert dispatchers for Parent/Teacher/Instructor
 window.onLikert = function(idx,val){
-  // Determine context by current section
-  if(!$("#parentForm").classList.contains("hidden")){
-    onLikertParent(idx,val);
-  }else{
-    onLikertTeacher(idx,val);
+  if(!document.getElementById('parentForm').classList.contains('hidden')){
+    state.parentAnswers = state.parentAnswers || {}; state.parentAnswers[idx] = Number(val);
+  }else if(!document.getElementById('teacherForm').classList.contains('hidden')){
+    state.teacherAnswers = state.teacherAnswers || {}; state.teacherAnswers[idx] = Number(val);
+  }else if(document.getElementById('instructorForm') && !document.getElementById('instructorForm').classList.contains('hidden')){
+    state.instructorAnswers = state.instructorAnswers || {}; state.instructorAnswers[idx] = Number(val);
   }
-}
+};
 window.onFinalPick = function(idx,mode){
-  if(!$("#parentForm").classList.contains("hidden")){
-    onFinalPickParent(idx,mode);
-  }else if(!$("#instructorForm").classList.contains("hidden")){
-    onFinalPickInstructor(idx,mode);
-  }else{
-    onFinalPickTeacher(idx,mode);
+  if(!document.getElementById('parentForm').classList.contains('hidden')){
+    state.parentAnswers = state.parentAnswers || {}; state.parentAnswers["fp_"+idx] = mode;
+  }else if(!document.getElementById('teacherForm').classList.contains('hidden')){
+    state.teacherAnswers = state.teacherAnswers || {}; state.teacherAnswers["fp_"+idx] = mode;
+  }else if(document.getElementById('instructorForm') && !document.getElementById('instructorForm').classList.contains('hidden')){
+    state.instructorAnswers = state.instructorAnswers || {}; state.instructorAnswers["fp_"+idx] = mode;
   }
-}
-function onLikertParent(idx,val){
-  state.parentAnswers = state.parentAnswers || {};
-  state.parentAnswers[idx] = Number(val);
-}
-function onFinalPickParent(idx,mode){
-  state.parentAnswers = state.parentAnswers || {};
-  state.parentAnswers["fp_"+idx] = mode;
-}
+};
 
 /* -------------------------------------------
    Scoring & Classification
@@ -1772,7 +1861,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   if (window.LEAP_LOAD) {
     window.LEAP_LOAD().then(remote => {
       if (remote && typeof remote === "object") {
-        try { localStorage.setItem("LEAP_DB", JSON.stringify(remote)); } catch(e){}
+        try { localStorage.setItem(DEMO_KEY, JSON.stringify(remote)); } catch(e){}
         // Optional: refresh lightweight UIs if functions exist
         try {
           if (window.state && window.state.role==='teacher' && window.refreshTeacherDash) refreshTeacherDash();
@@ -1791,6 +1880,26 @@ document.addEventListener("DOMContentLoaded", ()=>{
     };
   }
 })();
+
+// Unified Likert dispatchers
+window.onLikert = function(idx,val){
+  if(!document.getElementById('parentForm').classList.contains('hidden')){
+    state.parentAnswers = state.parentAnswers || {}; state.parentAnswers[idx] = Number(val);
+  }else if(!document.getElementById('teacherForm').classList.contains('hidden')){
+    state.teacherAnswers = state.teacherAnswers || {}; state.teacherAnswers[idx] = Number(val);
+  }else if(document.getElementById('instructorForm') && !document.getElementById('instructorForm').classList.contains('hidden')){
+    state.instructorAnswers = state.instructorAnswers || {}; state.instructorAnswers[idx] = Number(val);
+  }
+};
+window.onFinalPick = function(idx,mode){
+  if(!document.getElementById('parentForm').classList.contains('hidden')){
+    state.parentAnswers = state.parentAnswers || {}; state.parentAnswers["fp_"+idx] = mode;
+  }else if(!document.getElementById('teacherForm').classList.contains('hidden')){
+    state.teacherAnswers = state.teacherAnswers || {}; state.teacherAnswers["fp_"+idx] = mode;
+  }else if(document.getElementById('instructorForm') && !document.getElementById('instructorForm').classList.contains('hidden')){
+    state.instructorAnswers = state.instructorAnswers || {}; state.instructorAnswers["fp_"+idx] = mode;
+  }
+};
 </script>
 </body>
 </html>
