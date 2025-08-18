@@ -100,7 +100,7 @@ kbd[data-copied]::after{
 </style>
 <!-- Optional Firebase loader: Add your config below to enable Firestore + Anonymous Auth. If absent, app runs in local demo mode. -->
 <script type="module" id="firebase-loader">
-  // Firebase loader (Realtime DB + Anonymous Auth) with Admin overrides
+  // Firebase loader (Realtime DB + Anonymous Auth) — applies Admin overrides BEFORE init
   const defaultConfig = {
     apiKey: "AIzaSyCXXcN3uBSWRLFTlUibBnO4b6CfVXblwm0",
     authDomain: "leap-c8235.firebaseapp.com",
@@ -117,35 +117,29 @@ kbd[data-copied]::after{
   import { getAuth, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  // Read Admin overrides BEFORE init
   let __settings = {};
   try { __settings = JSON.parse(localStorage.getItem("LEAP_SETTINGS") || "{}"); } catch(e){ __settings = {}; }
+
   const firebaseConfig = { ...defaultConfig, ...( __settings.databaseURL ? { databaseURL: __settings.databaseURL } : {} ) };
   const PATH = (__settings && __settings.path) ? __settings.path : "leap/storage";
 
-  // Init
   const app = initializeApp(firebaseConfig);
   try { getAnalytics(app); } catch(e){}
 
-  // Anonymous Auth
   const auth = getAuth(app);
   await signInAnonymously(auth);
 
-  // Realtime DB
   const rtdb = getDatabase(app);
 
-  // Helpers
   window.LEAP_LOAD = async () => {
     const snap = await get(ref(rtdb, PATH));
     return snap.exists() ? snap.val() : null;
   };
   window.LEAP_SAVE = async (data) => {
-    await set(ref(rtdb, PATH), data);
+    try { await set(ref(rtdb, PATH), data); } catch(e){ console.error("RTDB save failed:", e); }
   };
   window._LEAP_SIGNOUT = () => signOut(auth).catch(()=>{});
-
-  // Badge
-  try{ const mb=document.getElementById('modeBadge'); if(mb) mb.textContent="Firebase: Realtime DB"; }catch(e){}
+  try{ const b=document.getElementById('modeBadge'); if(b) b.textContent='Firebase: Realtime DB'; }catch(e){}
         
 </script>
 </head>
@@ -603,7 +597,8 @@ function setStep(active){
   if(active) $("#"+active).classList.add("active");
 }
 
-function showSection(id){["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","instructorForm","instantIntake","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
+function showSection(id){
+  ["authSection","adminDash","teacherDash","parentDash","pinGate","quizSection","parentForm","teacherForm","reportView"].forEach(x=>$("#"+x).classList.add("hidden"));
   $("#"+id).classList.remove("hidden");
 
   const lo = document.getElementById('btnLogout');
@@ -634,7 +629,7 @@ function logout(){
     if(btn) btn.classList.remove('selected');
   });
   setStep('st-auth');
-  showSection('authSection'); try{ _LEAP_SIGNOUT(); }catch(e){}
+  showSection('authSection');
   // Clear any sign-in inputs
   const ids = ['adminPass','teacherCode','parentCode','instantCode'];
   ids.forEach(id=>{ const el=document.getElementById(id); if(el){ el.value='' } });
@@ -1061,7 +1056,6 @@ function adminGenerateInstantCode(){
   $("#codeInstantResult").textContent = "Created: "+code;
   refreshAdminViews();
 }
-
 function startPinGate(childId){
   const db=getDB(); const ch=db.children[childId];
   state.childId=childId; state.currentChild=ch; state.quiz={idx:0,answers:[]};
@@ -1141,7 +1135,6 @@ function selectAnswer(i, mode){
     }
   }, 150);
 }
-
 function saveChildAnswers(){
   const db=getDB(); const ch=db.children[state.childId];
   const c = countVAK(state.quiz.answers);
@@ -1244,7 +1237,7 @@ function onFinalPickTeacher(idx,mode){
   state.teacherAnswers = state.teacherAnswers || {};
   state.teacherAnswers["fp_"+idx] = mode;
 }
-// // Unified Likert dispatchers for Parent/Teacher/Instructor
+// Unified Likert dispatchers
 window.onLikert = function(idx,val){
   if(!document.getElementById('parentForm').classList.contains('hidden')){
     state.parentAnswers = state.parentAnswers || {}; state.parentAnswers[idx] = Number(val);
@@ -1881,6 +1874,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   }
 })();
 
+
 // Unified Likert dispatchers
 window.onLikert = function(idx,val){
   if(!document.getElementById('parentForm').classList.contains('hidden')){
@@ -1900,6 +1894,62 @@ window.onFinalPick = function(idx,mode){
     state.instructorAnswers = state.instructorAnswers || {}; state.instructorAnswers["fp_"+idx] = mode;
   }
 };
+
 </script>
+
+<!-- SAFE BOOT & FALLBACK BINDINGS -->
+<script>
+// Show helpful errors in a small footer bar (so silent JS errors don't hide login)
+window.addEventListener('error', (e) => {
+  try {
+    const bar = document.getElementById('errorBar') || (function(){
+      const d=document.createElement('div');
+      d.id='errorBar';
+      d.style.cssText='position:fixed;left:0;right:0;bottom:0;background:#b91c1c;color:#fff;padding:8px 12px;font:14px/1.4 system-ui;z-index:9999';
+      d.textContent='';
+      document.body.appendChild(d);
+      return d;
+    })();
+    const msg = (e && (e.message || (e.error && e.error.message))) || 'Unknown script error';
+    bar.textContent = 'Script error: ' + msg;
+  } catch(_) {}
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Ensure the Auth section is visible even if other JS fails
+  try { 
+    if (typeof showSection === 'function') {
+      showSection('authSection');
+      if (typeof setStep === 'function') setStep('st-auth');
+    } else {
+      var as = document.getElementById('authSection');
+      if (as) as.classList.remove('hidden');
+    }
+  } catch (e) {
+    var as = document.getElementById('authSection');
+    if (as) as.classList.remove('hidden');
+  }
+
+  // Fallback click bindings for role tiles & login buttons
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    if (!el || typeof fn !== 'function') return;
+    el.addEventListener('click', (evt)=>{
+      try { evt.preventDefault(); fn(); } catch(err){ console.error(err); }
+    });
+  };
+
+  bind('btnRole_admin',   () => chooseRole('admin'));
+  bind('btnRole_teacher', () => chooseRole('teacher'));
+  bind('btnRole_parent',  () => chooseRole('parent'));
+  bind('btnRole_instant', () => chooseRole('instant'));
+
+  bind('btnAdminLogin', authAdmin);
+  bind('btnTeacherLogin', authTeacher);
+  bind('btnParentLogin', authParent);
+  bind('btnInstantLogin', authInstant);
+});
+</script>
+
 </body>
 </html>
